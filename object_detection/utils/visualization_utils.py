@@ -19,7 +19,9 @@ These functions often receive an image, perform some visualization on the image.
 The functions do not return a value, instead they modify the image itself.
 
 """
+import os
 import collections
+
 import numpy as np
 import PIL.Image as Image
 import PIL.ImageColor as ImageColor
@@ -290,6 +292,9 @@ def draw_keypoints_on_image(image,
                  outline=color, fill=color)
 
 
+state = np.zeros(len(STANDARD_COLORS))
+
+
 def draw_mask_on_image_array(image, mask, color='red', alpha=0.7):
   """Draws mask on an image.
 
@@ -318,6 +323,35 @@ def draw_mask_on_image_array(image, mask, color='red', alpha=0.7):
   pil_mask = Image.fromarray(np.uint8(255.0*alpha*mask)).convert('L')
   pil_image = Image.composite(pil_solid_color, pil_image, pil_mask)
   np.copyto(image, np.array(pil_image.convert('RGB')))
+
+
+def pluralize(s):
+    """ Convert word to its plural form.
+
+    >>> pluralize('cat')
+    cats
+    >>> pluralize('doggy')
+    doggies
+
+    Better:
+
+    >> from pattern.en import pluralize, singularize
+
+    Or, even better, just create pluralized versions of all the class names by hand!
+    """
+    word = str.lower(s)
+    # case = str.lower(s[-1]) == s[-1]
+    if word.endswith('y'):
+        if word.endswith('ey'):
+            return word + 's'
+        else:
+            return word[:-1] + 'ies'
+    elif word[-1] in 'sx' or word[-2:] in ['sh', 'ch']:
+        return word + 'es'
+    elif word.endswith('an') and len(word) > 3:
+        return word[:-2] + 'en'
+    else:
+        return word + 's'
 
 
 def visualize_boxes_and_labels_on_image_array(image,
@@ -370,6 +404,7 @@ def visualize_boxes_and_labels_on_image_array(image,
   box_to_keypoints_map = collections.defaultdict(list)
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
+  description = []
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
@@ -381,13 +416,14 @@ def visualize_boxes_and_labels_on_image_array(image,
         box_to_color_map[box] = 'black'
       else:
         if not agnostic_mode:
-          if classes[i] in category_index.keys():
-            class_name = category_index[classes[i]]['name']
-          else:
-            class_name = 'N/A'
-          display_str = '{}: {}%'.format(
-              class_name,
-              int(100*scores[i]))
+          # if classes[i] in category_index.keys():
+          #   class_name = category_index[classes[i]]['name']
+          # else:
+          #   class_name = 'N/A'
+          class_name = category_index.get(classes[i], 'object')['name']
+          display_str = '{}: {} {}%'.format(i, class_name, int(100*scores[i]))
+          description += [class_name]
+          # print(display_str)
         else:
           display_str = 'score: {}%'.format(int(100 * scores[i]))
         box_to_display_str_map[box].append(display_str)
@@ -423,3 +459,9 @@ def visualize_boxes_and_labels_on_image_array(image,
           color=color,
           radius=line_thickness / 2,
           use_normalized_coordinates=use_normalized_coordinates)
+    description = collections.Counter(description).items()
+    description = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in description]
+    try:
+        os.system('say --rate=450 "{}"'.format(' and '.join(description)))
+    except:
+        print(description)

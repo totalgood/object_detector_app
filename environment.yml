@@ -1,4 +1,4 @@
-name: object-detection
+name: ai
 channels: !!python/tuple
 - menpo
 - defaults
