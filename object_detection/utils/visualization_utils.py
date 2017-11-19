@@ -232,15 +232,15 @@ def draw_bounding_boxes_on_image(image,
   """
   boxes_shape = boxes.shape
   if not boxes_shape:
-    return
+      return
   if len(boxes_shape) != 2 or boxes_shape[1] != 4:
-    raise ValueError('Input must be of size [N, 4]')
+      raise ValueError('Input must be of size [N, 4]')
   for i in range(boxes_shape[0]):
-    display_str_list = ()
-    if display_str_list_list:
-      display_str_list = display_str_list_list[i]
-    draw_bounding_box_on_image(image, boxes[i, 0], boxes[i, 1], boxes[i, 2],
-                               boxes[i, 3], color, thickness, display_str_list)
+      display_str_list = ()
+      if display_str_list_list:
+          display_str_list = display_str_list_list[i]
+      draw_bounding_box_on_image(image, boxes[i, 0], boxes[i, 1], boxes[i, 2],
+                                 boxes[i, 3], color, thickness, display_str_list)
 
 
 def draw_keypoints_on_image_array(image,
@@ -292,9 +292,6 @@ def draw_keypoints_on_image(image,
                  outline=color, fill=color)
 
 
-state = np.zeros(len(STANDARD_COLORS))
-
-
 def draw_mask_on_image_array(image, mask, color='red', alpha=0.7):
   """Draws mask on an image.
 
@@ -325,34 +322,6 @@ def draw_mask_on_image_array(image, mask, color='red', alpha=0.7):
   np.copyto(image, np.array(pil_image.convert('RGB')))
 
 
-def pluralize(s):
-    """ Convert word to its plural form.
-
-    >>> pluralize('cat')
-    cats
-    >>> pluralize('doggy')
-    doggies
-
-    Better:
-
-    >> from pattern.en import pluralize, singularize
-
-    Or, even better, just create pluralized versions of all the class names by hand!
-    """
-    word = str.lower(s)
-    # case = str.lower(s[-1]) == s[-1]
-    if word.endswith('y'):
-        if word.endswith('ey'):
-            return word + 's'
-        else:
-            return word[:-1] + 'ies'
-    elif word[-1] in 'sx' or word[-2:] in ['sh', 'ch']:
-        return word + 'es'
-    elif word.endswith('an') and len(word) > 3:
-        return word[:-2] + 'en'
-    else:
-        return word + 's'
-
 
 def visualize_boxes_and_labels_on_image_array(image,
                                               boxes,
@@ -363,7 +332,7 @@ def visualize_boxes_and_labels_on_image_array(image,
                                               keypoints=None,
                                               use_normalized_coordinates=False,
                                               max_boxes_to_draw=20,
-                                              min_score_thresh=.5,
+                                              min_score_thresh=.4,
                                               agnostic_mode=False,
                                               line_thickness=4):
   """Overlay labeled boxes on an image with formatted scores and label names.
@@ -404,7 +373,6 @@ def visualize_boxes_and_labels_on_image_array(image,
   box_to_keypoints_map = collections.defaultdict(list)
   if not max_boxes_to_draw:
     max_boxes_to_draw = boxes.shape[0]
-  description = []
   for i in range(min(max_boxes_to_draw, boxes.shape[0])):
     if scores is None or scores[i] > min_score_thresh:
       box = tuple(boxes[i].tolist())
@@ -415,17 +383,11 @@ def visualize_boxes_and_labels_on_image_array(image,
       if scores is None:
         box_to_color_map[box] = 'black'
       else:
-        if not agnostic_mode:
-          # if classes[i] in category_index.keys():
-          #   class_name = category_index[classes[i]]['name']
-          # else:
-          #   class_name = 'N/A'
-          class_name = category_index.get(classes[i], 'object')['name']
-          display_str = '{}: {} {}%'.format(i, class_name, int(100*scores[i]))
-          description += [class_name]
-          # print(display_str)
-        else:
+        if agnostic_mode:
           display_str = 'score: {}%'.format(int(100 * scores[i]))
+        else:
+          class_name = category_index.get(classes[i], 'object')['name']
+          display_str = '{}: {} {}%'.format(i, class_name, int(100 * scores[i]))
         box_to_display_str_map[box].append(display_str)
         if agnostic_mode:
           box_to_color_map[box] = 'DarkOrange'
@@ -459,9 +421,4 @@ def visualize_boxes_and_labels_on_image_array(image,
           color=color,
           radius=line_thickness / 2,
           use_normalized_coordinates=use_normalized_coordinates)
-    description = collections.Counter(description).items()
-    description = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in description]
-    try:
-        os.system('say --rate=450 "{}"'.format(' and '.join(description)))
-    except:
-        print(description)
+    return

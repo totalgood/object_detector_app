@@ -10,6 +10,7 @@ from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
+from object_detection.utils.nlp import update_state, describe_state, say
 
 CWD_PATH = os.getcwd()
 
@@ -24,8 +25,9 @@ NUM_CLASSES = 90
 
 # Loading label map
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
-categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES,
-                                                            use_display_name=True)
+print(label_map)
+
+categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
 
@@ -57,7 +59,17 @@ def detect_objects(image_np, sess, detection_graph):
         category_index,
         use_normalized_coordinates=True,
         line_thickness=8)
+
+    # Describe the image
+    detect_objects.state = update_state(state=None, boxes=np.squeeze(boxes),
+                                        classes=np.squeeze(classes).astype(np.int32),
+                                        scores=np.squeeze(scores), category_index=category_index)
+    description = describe_state(detect_objects.state)
+    say(description)
     return image_np
+
+
+detect_objects.state = []  # poor man's class/object
 
 
 def worker(input_q, output_q):
