@@ -21,11 +21,11 @@ PATH_TO_CKPT = os.path.join(CWD_PATH, 'object_detection', MODEL_NAME, 'frozen_in
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = os.path.join(CWD_PATH, 'object_detection', 'data', 'mscoco_label_map.pbtxt')
 
-NUM_CLASSES = 90
-
 # Loading label map
 label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 print(label_map)
+
+NUM_CLASSES = 80
 
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
