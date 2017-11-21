@@ -44,5 +44,6 @@ dependencies:
   - protobuf==3.3.0
   - tensorflow==1.2.0
   - werkzeug==0.12.2
+  - pandas==0.21.0
 prefix: /Users/datitran/anaconda/envs/object-detection
 

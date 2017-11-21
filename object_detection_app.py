@@ -31,7 +31,7 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 
-def detect_objects(image_np, sess, detection_graph):
+def detect_objects(image_np, sess, detection_graph, utterance_frames=20):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -61,11 +61,12 @@ def detect_objects(image_np, sess, detection_graph):
         line_thickness=8)
 
     # Describe the image
-    detect_objects.state = update_state(state=None, boxes=np.squeeze(boxes),
-                                        classes=np.squeeze(classes).astype(np.int32),
-                                        scores=np.squeeze(scores), category_index=category_index)
-    description = describe_state(detect_objects.state)
-    say(description)
+    state = update_state(boxes=np.squeeze(boxes),
+                         classes=np.squeeze(classes).astype(np.int32),
+                         scores=np.squeeze(scores), category_index=category_index)
+    if not update_state.i % utterance_frames:
+        description = describe_state(state)
+        say(description)
     return image_np
 
 
