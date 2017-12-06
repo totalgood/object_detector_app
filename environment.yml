@@ -1,29 +1,17 @@
-name: object-detection-test2
+name: object-detection
 channels:
-- jlaura
 - conda-forge
 - defaults
 dependencies:
-- ffmpeg=3.2.4=3
 - opencv=3.3.0=py35_blas_openblas_202
 - jasper=1.900.1=4
-- jpeg=9b=2
 - matplotlib=2.1.0=py35_1
 - numpy=1.13.3=py35_blas_openblas_201
 - pandas=0.21.0=py35_0
 - pillow=4.3.0=py35_1
 - pyqt=5.6.0=py35_2
 - pytest=3.2.1=py35_0
-- qt=5.6.2=h9e3eb04_4
-- x264=20131217=3
 - pip:
-  - backports.functools-lru-cache==1.4
-  - backports.weakref==1.0rc1
-  - bleach==1.5.0
-  - html5lib==0.9999999
-  - markdown==2.2.0
-  - protobuf==3.3.0
   - tensorflow==1.2.0
-  - werkzeug==0.12.2
 prefix: /usr/local/anaconda3/envs/object-detection
 
