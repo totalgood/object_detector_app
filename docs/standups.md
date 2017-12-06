@@ -1,6 +1,6 @@
 # Standups
 
-## Standup
+## Standup 1
 
 ### Hobson
 
@@ -22,3 +22,28 @@ libstreaming library crashing on android emulator (android studio) faster pro em
 * knowledge graphs are NoSQL connections between facts. Any nosql database can store them. I'm using a dict of dicts for now.
 * Alex decided to pursue the minimum viable docker container
 * will work with Sujeeth and Bala to deploy the container to AWS
+
+
+## Standup 2
+
+### Alex
+
+* Wowza working, pulling from the right Anaconda package. Pushed to master a version that takes a url working
+* Jenkins build
+
+### Ashwin
+
+* stream is working on android except camera permissions, has dialog box from another app make that work
+* finish camera permissions dialog box
+
+## Sujeeth 
+
+* help Ashwin integrate wowza streamer into the OCR app
+
+### parking lot
+
+* permissions problem only happens with first install of the app, not with each new release, so that's good
+* RTSP server: link had `rtsp://prod*pemdosa*{servernum}:{port}/live/stream` example urls only have server num and port, 
+* alex forgot to send link to gennymotion -- rapid android emulation
+* talk about CI, sh scripts that call python scripts
+* CICD apps released through bitrise 
