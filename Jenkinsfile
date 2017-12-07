@@ -2,6 +2,7 @@ pipeline {
   agent {
     docker {
       image 'continuumio/anaconda'
+      args '-it'
     }
     
   }
