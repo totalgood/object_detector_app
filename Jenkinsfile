@@ -11,9 +11,19 @@ pipeline {
         stage('Build') {
             steps {
                 checkout scm
-                echo 'Placeholder: call build script'
+                echo 'Creation python environment'
+                sh 'make create_env'
+                sh 'source activate object-detection'
             }
         }
+
+        stage('Test') {
+            steps {
+                echo 'Calling make test script'
+                sh 'make test || true'
+            }
+        }
+
         stage('Deploy - Staging'){
             when {
                 expression {
@@ -41,7 +51,6 @@ pipeline {
     post {
         always {
             echo 'The job has finished.'
-            deleteDir() /* clean up our workspace */
         }
         success {
             slackSend channel: '#ai-nsf-jenkins-jobs',
@@ -58,8 +67,10 @@ pipeline {
                 color: 'danger',
                 message: "@all The pipeline ${currentBuild.fillDisplayName} has failed! Check it out here: ${env.BUILD_URL}"
         }
+        /*
         changed {
 
         }
+        */
     }
 }
