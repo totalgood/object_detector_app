@@ -12,15 +12,14 @@ pipeline {
             steps {
                 checkout scm
                 echo 'Creation python environment'
-                sh 'make create_env'
-                sh 'source activate object-detection'
+                sh 'bin/build.sh'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Calling make test script'
-                sh 'make test || true'
+                sh 'bin/test.sh || true'
             }
         }
 
@@ -37,7 +36,7 @@ pipeline {
 
         stage('Sanity check') {
             steps {
-                input "Does the staging environment look ok?"
+                input "Does the staging env look good? Good enough to deploy into production?"
             }
         }
 
@@ -51,6 +50,9 @@ pipeline {
     post {
         always {
             echo 'The job has finished.'
+            slackSend channel: '#ai-nsf-jenkins-jobs',
+                color: 'good',
+                message: "The pipeline ${currentBuild.fillDisplayName} completed."
         }
         success {
             slackSend channel: '#ai-nsf-jenkins-jobs',
