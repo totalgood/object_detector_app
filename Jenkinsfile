@@ -12,14 +12,14 @@ pipeline {
             steps {
                 checkout scm
                 echo 'Creation python environment'
-                sh 'bin/build.sh'
+                sh 'source bin/build.sh'
             }
         }
 
         stage('Test') {
             steps {
                 echo 'Calling make test script'
-                sh 'bin/test.sh || true'
+                sh 'bash bin/test.sh || true'
             }
         }
 
