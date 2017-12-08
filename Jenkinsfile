@@ -1,15 +1,12 @@
 #!/usr/bin/env groovy
 
 pipeline {
-    /*
     agent {
         docker {
             image 'continuumio/miniconda3'
-            args '--rm --name ai-conda -e USERID=$UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs:rw,z'
+            args '--rm --name ai-conda -e USERID=$UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs:rw'
         }
     }
-    */
-    agent any
 
     stages {
         stage('Checkout') {
@@ -24,8 +21,7 @@ pipeline {
             }
             steps {
                 sh 'conda info'
-                sh 'conda clean -a'
-                sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
+                sh 'sudo conda env create -q -f environment.yml -p $CONDA_ENV'
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
                     pytest -vs utils/
