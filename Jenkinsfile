@@ -4,7 +4,7 @@ pipeline {
     agent {
         docker {
             image 'continuumio/anaconda'
-            args '-v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs'
+            args '-u $UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs'
         }
     }
 
