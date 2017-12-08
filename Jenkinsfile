@@ -21,6 +21,7 @@ pipeline {
             }
             steps {
                 sh 'conda info'
+                sh 'conda clean'
                 sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
