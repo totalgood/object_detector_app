@@ -4,6 +4,7 @@ pipeline {
     agent {
         docker {
             image 'continuumio/anaconda'
+            args: ' -v /home/ec2-user/conda3/pkgs:/root/.conda/pkgs:rw,z'
         }
     }
 
