@@ -8,19 +8,24 @@ pipeline {
     }
 
     stages {
-        stage('Build') {
+        stage('Checkout') {
             steps {
                 checkout scm
-                echo 'Creation python environment'
-                sh 'bash'
-                sh 'source bin/build.sh'
             }
         }
 
         stage('Test') {
+            environment {
+                CONDA_ENV = "${env.WORKSPACE}/test/${env.STAGE_NAME}"
+            }
             steps {
-                echo 'Calling make test script'
-                sh 'bin/test.sh || true'
+                sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
+                sh '''#!/bin/bash -ex
+                    source $CONDA_ENV/bin/activate $CONDA_ENV
+                    pytest -vs utils/
+                    python -m unittest discover -s object_detection -p "*_test.py"
+                '''
+
             }
         }
 
