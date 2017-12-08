@@ -4,7 +4,7 @@ pipeline {
     agent {
         docker {
             image 'continuumio/miniconda3'
-            args '-e GROUPID=docker -e USERID=jenkins --rm --name ai-conda -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/jenkins/.conda3/pkgs:/home/jenkins/.conda/pkgs:rw,z'
+            args '-e GROUPID=495 -e USERID=498 --rm --name ai-conda -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/jenkins/.conda3/pkgs:/home/jenkins/.conda/pkgs:rw,z'
         }
     }
 
