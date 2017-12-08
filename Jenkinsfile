@@ -4,7 +4,7 @@ pipeline {
     agent {
         docker {
             image 'continuumio/miniconda3'
-            args '--rm --name ai-conda -e USERID=$UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs:rw'
+            args '--rm --name ai-conda -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs:rw'
         }
     }
 
@@ -21,7 +21,10 @@ pipeline {
             }
             steps {
                 sh 'conda info'
-                sh 'sudo conda env create -q -f environment.yml -p $CONDA_ENV'
+                sh 'conda clean -a'
+                sh '''#!/bin/bash -ex
+                   sudo conda env create -q -f environment.yml -p $CONDA_ENV'
+                   '''
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
                     pytest -vs utils/
