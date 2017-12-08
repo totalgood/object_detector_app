@@ -3,8 +3,8 @@
 pipeline {
     agent {
         docker {
-            image 'continuumio/anaconda'
-            args '-e USERID=$UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs'
+            image 'continuumio/miniconda3'
+            args '--rm --name ai-conda -e USERID=$UID -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/ec2-user/conda3/pkgs:/opt/conda/pkgs:rw,z'
         }
     }
 
