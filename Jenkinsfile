@@ -21,7 +21,7 @@ pipeline {
             }
             steps {
                 sh 'conda info'
-                sh 'conda clean -a'
+                sh 'ls -la /opt/conda/pkgs'
                 sh '''#!/bin/bash -ex
                    sudo conda env create -q -f environment.yml -p $CONDA_ENV'
                    '''
