@@ -4,7 +4,7 @@ pipeline {
     agent {
         docker {
             image 'continuumio/miniconda3'
-            args '-e GROUPID=495 -e USERID=498 --rm --name ai-conda -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/jenkins/.conda3/pkgs:/home/jenkins/.conda/pkgs:rw,z'
+            args '-u 0 --rm --name ai-conda -v /etc/passwd:/etc/passwd -v /etc/group:/etc/group -v /home/jenkins/.conda3/pkgs:/home/jenkins/.conda/pkgs:rw,z'
         }
     }
 
@@ -22,9 +22,7 @@ pipeline {
             steps {
                 sh 'conda info'
                 sh 'ls -la /opt/conda/pkgs'
-                sh '''#!/bin/bash -ex
-                   sudo conda env create -q -f environment.yml -p $CONDA_ENV'
-                   '''
+                sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
                     pytest -vs utils/
