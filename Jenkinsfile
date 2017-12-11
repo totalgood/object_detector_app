@@ -1,6 +1,16 @@
 #!/usr/bin/env groovy
 
 pipeline {
+
+    /* Create instance (Agent) to run Jenkins pipeline on
+
+    Section creates a docker container with anaconda installed on it for jenkins pipeline to run on. Arguments work
+    as follows:
+        `-u 0` user ID, which has root value. Good reference about docker UID/GIDs (https://goo.gl/bYFxVh)
+        `--rm` If a docker container with the same name already exists, remove it
+        `--name ai-conda` Give this docker instance the name `ai-conda`
+        `-v _:_` map volumes. Specifically, map `passwd`, `group` and the conda packages volumes to the container
+    */
     agent {
         docker {
             image 'continuumio/miniconda3'
@@ -20,12 +30,10 @@ pipeline {
                 CONDA_ENV = "${env.WORKSPACE}/test/${env.STAGE_NAME}"
             }
             steps {
-                sh 'conda info'
-                sh 'ls -la /opt/conda/pkgs'
                 sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
-                    pytest -vs utils/
+                    python -m pytest
                     python -m unittest discover -s object_detection -p "*_test.py"
                 '''
 
