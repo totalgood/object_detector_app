@@ -30,7 +30,23 @@ pipeline {
                 CONDA_ENV = "${env.WORKSPACE}/test/${env.STAGE_NAME}"
             }
             steps {
-                sh 'conda env create -q -f environment.yml -p $CONDA_ENV'
+                /* Recreate a conda environment from the config file
+
+                    `-q` quite mode. Remove to see verbose output
+                    `--force` remove previously existing environment of the same name
+                    `-f FILE` environment definition file
+                    `-p PATH` Full path to environment prefix (replacing default)
+                 */
+                sh 'conda env create -q --force -f environment.yml -p $CONDA_ENV'
+
+                /*  Activate the environment and run unit tests
+
+                    `source ...` activate the environment
+                    `python -m pytest` run `pytest` as a module
+                    `python -m unittest...` run `unittest` on the `object_detection` directory, pattern matching all of
+                        the files that end in `_test.py`
+
+                 */
                 sh '''#!/bin/bash -ex
                     source $CONDA_ENV/bin/activate $CONDA_ENV
                     python -m pytest
@@ -64,6 +80,7 @@ pipeline {
         }
     }
 
+    /* TODO(Alex): Fix Slack Notifications. */
     post {
         always {
             echo 'The job has finished.'
