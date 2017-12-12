@@ -29,8 +29,11 @@ print(label_map)
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
+# Voice Output
+is_voice_on = False
 
-def detect_objects(image_np, sess, detection_graph, utterance_frames=20):
+
+def detect_objects(image_np, sess, detection_graph, utterance_frames=20, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -65,14 +68,15 @@ def detect_objects(image_np, sess, detection_graph, utterance_frames=20):
                          scores=np.squeeze(scores), category_index=category_index)
     if not update_state.i % utterance_frames:
         description = describe_state(state)
-        say(description)
+        if voice_on:
+            say(description)
     return image_np
 
 
 detect_objects.state = []  # poor man's class/object
 
 
-def worker(input_q, output_q):
+def worker(input_q, output_q, voice_on=False):
     # Load a (frozen) Tensorflow model into memory.
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -85,11 +89,13 @@ def worker(input_q, output_q):
         sess = tf.Session(graph=detection_graph)
 
     fps = FPS().start()
+
     while True:
         fps.update()
         frame = input_q.get()
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        output_q.put(detect_objects(frame_rgb, sess, detection_graph))
+
+        output_q.put(detect_objects(frame_rgb, sess, detection_graph, voice_on=voice_on))
 
     fps.stop()
     sess.close()
@@ -111,6 +117,8 @@ if __name__ == '__main__':
                         default=5, help='Size of the queue.')
     parser.add_argument('-g', '--gui', action='store_true', default=False, dest='gui',
                         help='Show a GUI/Graphics, or run headless.')
+    parser.add_argument('-s', '--say', action='store_true', default=False, dest='voice_on',
+                        help='Say commands on local computer (for debugging)')
     args = parser.parse_args()
 
     logger = multiprocessing.log_to_stderr()
@@ -118,10 +126,9 @@ if __name__ == '__main__':
 
     input_q = Queue(maxsize=args.queue_size)
     output_q = Queue(maxsize=args.queue_size)
-    pool = Pool(args.num_workers, worker, (input_q, output_q))
+    pool = Pool(args.num_workers, worker, (input_q, output_q, args.voice_on))
 
     disp_graphics = args.gui
-
     source = args.video_stream_source
 
     if source is None:
