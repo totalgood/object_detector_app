@@ -126,6 +126,7 @@ def pluralize(s):
 def update_state(boxes, classes, scores, category_index, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
     """ Revise state based on latest frame of information (object boxes)
 
+    TODO(Hobson) Finish docstring (Need to know all the args and the return val)
     Args:
         boxes (list): 2D numpy array of shape (N, 4): (ymin, xmin, ymax, xmax), in normalized format between [0, 1].
         classes,
@@ -149,12 +150,12 @@ def update_state(boxes, classes, scores, category_index, window=10, max_boxes_to
             # box = tuple(boxes[i].tolist())
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
-            print(display_str)
+            print(display_str)  # TODO(Alex) Convert to logging
             state += [class_name]
     state = collections.Counter(state)
     update_state.states.iloc[i % len(update_state.states), :] = pd.Series(state)
     state = sorted(list(state.items()))
-    i = (i + 1) % len(update_state.states)  # update_state.window
+    i = (i + 1) % len(update_state.states)  # update_state.window  TODO(Hobs) Is `i` used after this?
     return state
 
 
