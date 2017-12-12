@@ -11,6 +11,7 @@ from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 from nlp import update_state, describe_state, say
+from nlp.dispatch import mqttc, Dispatchable, dispatcher
 
 CWD_PATH = os.getcwd()
 
@@ -28,9 +29,6 @@ print(label_map)
 # though mobilenet can handle
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
-
-# Voice Output
-is_voice_on = False
 
 
 def detect_objects(image_np, sess, detection_graph, utterance_frames=20, voice_on=False):
@@ -139,6 +137,7 @@ if __name__ == '__main__':
                                       height=args.height).start()
     fps = FPS().start()
 
+    rc = 0  # mqtt client status. Error if not zero
     while True:  # fps._numFrames < 120
         frame = video_capture.read()
         input_q.put(frame)
@@ -154,6 +153,11 @@ if __name__ == '__main__':
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
+        if rc is 0:
+            rc = mqttc.loop()
+        else:
+            print('MQTT Connection error!')
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))

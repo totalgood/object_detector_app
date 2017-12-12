@@ -1,29 +1,82 @@
 """
 Module interprets agent commands and dispatches an action
+
+
+How to extend NLP commands:
+
+1. Import: ` from nlp.dispatch import Dispatchable, dispatcher `
+2. Subclass `Dispatchable`, implementing the action in `__call__`.
+3. Expand the `displatcher` with a command: `dispatcher['<command>'] = <Subclass of Dispatchable>`
+
 """
+
 import json
+import os
 import typing
+
+import paho.mqtt.client as mqtt
+
+EXPLORER_TOPIC = 'nsf/explorer/command'
+AI_TOPIC = 'nsf/ai/response'
+
+
+# Define event callbacks
+def on_connect(client, userdata, flags, rc):
+    print("rc: " + str(rc))
+
+
+def on_publish(client, obj, mid):
+    print("mid: " + str(mid))
+
+
+def on_subscribe(client, obj, mid, granted_qos):
+    print("Subscribed: " + str(mid) + " " + str(granted_qos))
+
+
+def on_log(client, obj, level, string):
+    print(string)
 
 
 def on_message(client, obj, msg):
-    print('on msg: ' + str(msg))
+    print('on msg: ' + str(msg))  # TODO(Alex) Replace with logging system
     try:
         json_string = str(msg.payload, 'utf-8')
         payload = json.loads(json_string)
     except json.decoder.JSONDecodeError:
         return
 
-    cmd = interp_command(payload.get('command', 'default'), list(dispatcher.keys()))
+    cmd = payload.get('command', 'default').lower(),
 
-    dispatcher[cmd](payload)
+    action = interp_command(cmd, list(dispatcher.keys()))
+
+    dispatcher[action](payload)
+
+
+mqttc = mqtt.Client()
+
+
+# Assign event callbacks
+mqttc.on_message = on_message
+mqttc.on_connect = on_connect
+mqttc.on_publish = on_publish
+mqttc.on_subscribe = on_subscribe
+# mqttc.on_log = on_log
+
+
+url_str = os.environ.get('AIRAMQTT_URL', 'preprod-mqtt.aira.io')
+port = int(os.environ.get('AIRAMQTT_PORT', '1883'))
+
+
+mqttc.connect(url_str, port, 60)
+mqttc.subscribe(EXPLORER_TOPIC, 0)
 
 
 def interp_command(cmd_str: str, actions: typing.List[str]) -> str:
     """Output a discrete action to take from a user command in natural language.
-    
+
     Args:
         cmd_str: user command
-        actions: list of commands available from dispatcher 
+        actions: list of commands available from dispatcher
 
     Returns:
         str: single command for dispatcher to execute
@@ -44,14 +97,16 @@ def interp_command(cmd_str: str, actions: typing.List[str]) -> str:
     return 'default'
 
 
-class Dispatchable():
-    from nlp.mqtt import mqttc, AI_TOPIC
-
+class Dispatchable:
     client = mqttc
-    topic = AI_TOPIC
+    root_topic = AI_TOPIC
 
-    def send(self, payload):
-        self.client.publish(self.topic, payload)
+    def send(self, payload: typing.Any, *, subtopic: typing.List[str] = list()):
+        if not subtopic:
+            self.client.publish(self.root_topic, payload=payload)
+        else:
+            self.client.publish(self.root_topic + '/' + '/'.join(subtopic),
+                                payload=payload)
 
 
 class Echo(Dispatchable):
@@ -69,6 +124,15 @@ dispatcher = {
     'debug': Echo(),
 }
 
+
+def _test_mqtt_loop():
+    rc = 0
+
+    while rc == 0:
+        rc = mqttc.loop()
+    print('rc: ' + str(rc))
+
+
 if __name__ == '__main__':
-    import doctest
-    doctest.testmod()
+
+    _test_mqtt_loop()
