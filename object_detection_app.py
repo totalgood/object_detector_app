@@ -109,6 +109,8 @@ if __name__ == '__main__':
                         default=2, help='Number of workers.')
     parser.add_argument('-q-size', '--queue-size', dest='queue_size', type=int,
                         default=5, help='Size of the queue.')
+    parser.add_argument('-g', '--gui', action='store_true', default=False, dest='gui',
+                        help='Show a GUI/Graphics, or run headless.')
     args = parser.parse_args()
 
     logger = multiprocessing.log_to_stderr()
@@ -117,6 +119,8 @@ if __name__ == '__main__':
     input_q = Queue(maxsize=args.queue_size)
     output_q = Queue(maxsize=args.queue_size)
     pool = Pool(args.num_workers, worker, (input_q, output_q))
+
+    disp_graphics = args.gui
 
     source = args.video_stream_source
 
@@ -135,7 +139,8 @@ if __name__ == '__main__':
         t = time.time()
 
         output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
-        cv2.imshow('Video', output_rgb)
+        if disp_graphics:
+            cv2.imshow('Video', output_rgb)
         fps.update()
 
         print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
@@ -149,4 +154,5 @@ if __name__ == '__main__':
 
     pool.terminate()
     video_capture.stop()
-    cv2.destroyAllWindows()
+    if disp_graphics:
+        cv2.destroyAllWindows()
