@@ -47,3 +47,30 @@ libstreaming library crashing on android emulator (android studio) faster pro em
 * alex forgot to send link to gennymotion -- rapid android emulation
 * talk about CI, sh scripts that call python scripts
 * CICD apps released through bitrise 
+
+
+## Standup 3
+
+### Hobson
+
+* POC for maps
+* 
+
+### Alex
+
+* code for wowza works, needs to be put on dev and prod
+* jenkins build working, unittests, then deploy
+
+### Ashwin
+
+* stream debugging (permissions)
+* NFB OCR branch for sujeeth, rabbitMQ, linked to user info
+
+### Parking Lot
+
+* What next? OCR chatbot
+* Bug in Jira for portrait/landscape rotation
+* display of video?
+* cloud emulation of multiple Android devices
+* 9854010344
+
