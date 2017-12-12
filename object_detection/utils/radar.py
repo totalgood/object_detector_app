@@ -1,5 +1,5 @@
 """ State vector registration (consolidation/filtering over time in an intertial frame) and buffering """
-
+import pandas as pd
 
 class SensorBuffer:
     """ Container for list of dicts containing sensor samples for past W samples (W = window width) """
