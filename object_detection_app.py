@@ -109,7 +109,7 @@ if __name__ == '__main__':
                         default=2, help='Number of workers.')
     parser.add_argument('-q-size', '--queue-size', dest='queue_size', type=int,
                         default=5, help='Size of the queue.')
-    parser.add_argument('-g', '--gui', type=bool, default=False, dest='gui',
+    parser.add_argument('-g', '--gui', action='store_true', default=False, dest='gui',
                         help='Show a GUI/Graphics, or run headless.')
     args = parser.parse_args()
 
