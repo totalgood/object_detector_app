@@ -178,7 +178,7 @@ def describe_state(state):
 def say(s, rate=230):
     """ Convert text to speech (TTS) and play resulting audio to speakers
 
-    If "say" command is not available in os.system then print the text to stdout.
+    If "say" command is not available in os.system then print the text to stdout and return False.
 
     >>> say(hello)
     'hello'
