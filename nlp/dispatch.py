@@ -4,10 +4,9 @@ Module interprets agent commands and dispatches an action
 
 How to extend NLP commands:
 
-1. Import: ` from nlp.dispatch import Dispatchable, dispatcher `
-2. Subclass `Dispatchable`, implementing the action in `__call__`.
+1. Import: `from nlp.dispatch import Dispatchable, dispatcher`
+2. Subclass `Dispatchable`, implementing the action in `__call__`. Call takes in a python dictionary (the `payload`)
 3. Expand the `displatcher` with a command: `dispatcher['<command>'] = <Subclass of Dispatchable>`
-
 """
 
 import json
@@ -129,12 +128,10 @@ dispatcher = {
 
 def _test_mqtt_loop():
     rc = 0
-
     while rc == 0:
         rc = mqttc.loop()
     print('rc: ' + str(rc))
 
 
 if __name__ == '__main__':
-
     _test_mqtt_loop()

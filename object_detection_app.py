@@ -7,11 +7,12 @@ import numpy as np
 import tensorflow as tf
 
 from utils.app_utils import FPS, WebcamVideoStream
-from multiprocessing import Queue, Pool, cpu_count
+from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 from nlp import update_state, describe_state, say
-from nlp.dispatch import mqttc, Dispatchable, dispatcher
+from nlp.dispatch import mqttc, dispatcher
+from nlp.command.describe import Describe
 
 CWD_PATH = os.getcwd()
 
@@ -105,20 +106,6 @@ def worker(input_q, output_q, state_q, voice_on=False):
 
     fps.stop()
     sess.close()
-
-
-class Describe(Dispatchable):
-
-    def __init__(self, state_q):
-        self.state_q = state_q
-
-    def __call__(self, payload):
-        state = state_q.get()
-
-        if state:
-            description = describe_state(state)
-
-            self.send({'response': description}, subtopic=['say'])
 
 
 if __name__ == '__main__':
