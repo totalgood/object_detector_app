@@ -52,21 +52,19 @@ the following format:
 ```
 
 #### `dev/chloe/response/<userid>/<action>`
-We publish to the root topic and to one or more subtopics. Subtopics will be related to the 
-commands that ought be executed on the client. For instance, if we expect the client to read the 
-text response aloud, we will publish it in the `say` subtopic (i.e. `dev/chloe/response/1324234/say`). 
+We publish to the root topic `dev/chloe/response` via subtopics scoped by the end user's id and the desired action. For instance, if we expect the client with id `1324234` to read the text response aloud (i.e. the `say` action), we will publish to the following topic path: `dev/chloe/response/1324234/say`. 
 
 Messages should be encoded as JSON objects in the following format: 
 
 ```json
 {
   "messageId": 124, // ID for the current payload
-  "statementId": 123, // ID of command payload (payload this is in response to)
+  "statementId": 123, // ID of statement payload (payload this is in response to, see above)
   "timestamp": 1234123412341234,
 
   // Was the service successful?
   "status": {
-    "code": "ch-vis-000",
+    "code": "ch-vis-000", // <project code>-<module code>-<error/status code>
     "message": "success" 
   },
   
@@ -88,15 +86,17 @@ Topic: `nsf/ai/say`
 Payload: 
 ```json
 {
-  "id": 124, 
-  "command_id": 123,
-  "datetime": 1234123412341234,
+  "messageId": 124, 
+  "statementId": 123,
+  "timestamp": 1234123412341234,
   "status": {
-    "code": 200,
-    "message": "success"
+    "code": "ch-vis-000",
+    "message": "success" 
   },
+  "action": "say",
   "args": [], 
   "kwargs": {
+    "confidence": 0.87,
     "text": "there is 1 person and a chair around you",
     "wordsPerMin": 200,
     "voiceGender": "Female"
@@ -104,7 +104,7 @@ Payload:
 }
 ```
 
-### Agent-Chloe Configuration
+### Agent-Chloe Experiment Configuration Discussion
 - Should be configured on dashboard. 
 - Response to explorer should have a delay, whether they come from Chloe or the AI. The explorer should not be able to distinguish between human and machine. 
 - Want to design intentional fallback from the AI to the Human agent. Thus, we need two buttons: the random send (either AI or Human), and a **SEND!** that forcibly sends the human response over the AI. 
