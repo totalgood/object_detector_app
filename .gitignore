@@ -94,3 +94,10 @@ ENV/
 # tensorflow model weights
 *.tar.gz
 
+*.dev.*
+*.master.*
+*.bak.*
+*.broke.*
+*.fixed.*
+*.works.*
+
