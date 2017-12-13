@@ -7,7 +7,7 @@ import numpy as np
 import tensorflow as tf
 
 from utils.app_utils import FPS, WebcamVideoStream
-from multiprocessing import Queue, Pool
+from multiprocessing import Queue, Pool, cpu_count
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 from nlp import update_state, describe_state, say
@@ -31,7 +31,7 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 
-def detect_objects(image_np, sess, detection_graph, utterance_frames=20, voice_on=False):
+def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -64,6 +64,10 @@ def detect_objects(image_np, sess, detection_graph, utterance_frames=20, voice_o
     state = update_state(boxes=np.squeeze(boxes),
                          classes=np.squeeze(classes).astype(np.int32),
                          scores=np.squeeze(scores), category_index=category_index)
+
+    # Persists image state in a queue
+    state_q.put(state)
+
     if not update_state.i % utterance_frames:
         description = describe_state(state)
         if voice_on:
@@ -74,7 +78,7 @@ def detect_objects(image_np, sess, detection_graph, utterance_frames=20, voice_o
 detect_objects.state = []  # poor man's class/object
 
 
-def worker(input_q, output_q, voice_on=False):
+def worker(input_q, output_q, state_q, voice_on=False):
     # Load a (frozen) Tensorflow model into memory.
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -93,10 +97,28 @@ def worker(input_q, output_q, voice_on=False):
         frame = input_q.get()
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
-        output_q.put(detect_objects(frame_rgb, sess, detection_graph, voice_on=voice_on))
+        if state_q.full():
+            state_q.get()
+            state_q.get()
+
+        output_q.put(detect_objects(frame_rgb, sess, detection_graph, state_q, voice_on=voice_on))
 
     fps.stop()
     sess.close()
+
+
+class Describe(Dispatchable):
+
+    def __init__(self, state_q):
+        self.state_q = state_q
+
+    def __call__(self, payload):
+        state = state_q.get()
+
+        if state:
+            description = describe_state(state)
+
+            self.send({'response': description}, subtopic=['say'])
 
 
 if __name__ == '__main__':
@@ -117,6 +139,8 @@ if __name__ == '__main__':
                         help='Show a GUI/Graphics, or run headless.')
     parser.add_argument('-s', '--say', action='store_true', default=False, dest='voice_on',
                         help='Say commands on local computer (for debugging)')
+    parser.add_argument('-sq-size', '--state-queue-size', dest='state_queue_size', type=int,
+                        default=5, help='Size of the object detection state queue size.')
     args = parser.parse_args()
 
     logger = multiprocessing.log_to_stderr()
@@ -124,7 +148,11 @@ if __name__ == '__main__':
 
     input_q = Queue(maxsize=args.queue_size)
     output_q = Queue(maxsize=args.queue_size)
-    pool = Pool(args.num_workers, worker, (input_q, output_q, args.voice_on))
+    state_q = Queue(maxsize=args.state_queue_size)
+
+    dispatcher['describe'] = Describe(state_q)
+
+    pool = Pool(args.num_workers, worker, (input_q, output_q, state_q, args.voice_on))
 
     disp_graphics = args.gui
     source = args.video_stream_source
@@ -167,3 +195,4 @@ if __name__ == '__main__':
     video_capture.stop()
     if disp_graphics:
         cv2.destroyAllWindows()
+

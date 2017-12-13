@@ -22,11 +22,11 @@ AI_TOPIC = 'nsf/ai/response'
 
 # Define event callbacks
 def on_connect(client, userdata, flags, rc):
-    print("rc: " + str(rc))
+    print("Connection to client! rc: " + str(rc))
 
 
 def on_publish(client, obj, mid):
-    print("mid: " + str(mid))
+    print("Publishing AI Response mid: " + str(mid))
 
 
 def on_subscribe(client, obj, mid, granted_qos):
@@ -38,9 +38,9 @@ def on_log(client, obj, level, string):
 
 
 def on_message(client, obj, msg):
-    print('on msg: ' + str(msg))  # TODO(Alex) Replace with logging system
     try:
         json_string = str(msg.payload, 'utf-8')
+        print('On msg: ' + json_string)
         payload = json.loads(json_string)
     except json.decoder.JSONDecodeError:
         return
@@ -49,6 +49,7 @@ def on_message(client, obj, msg):
 
     action = interp_command(cmd, list(dispatcher.keys()))
 
+    print('calling ' + action)
     dispatcher[action](payload)
 
 
@@ -101,12 +102,13 @@ class Dispatchable:
     client = mqttc
     root_topic = AI_TOPIC
 
-    def send(self, payload: typing.Any, *, subtopic: typing.List[str] = list()):
+    def send(self, payload: typing.Dict, *, subtopic: typing.List[str] = list()):
+        payload_json = json.dumps(payload)
         if not subtopic:
-            self.client.publish(self.root_topic, payload=payload)
+            self.client.publish(self.root_topic, payload=payload_json)
         else:
             self.client.publish(self.root_topic + '/' + '/'.join(subtopic),
-                                payload=payload)
+                                payload=payload_json)
 
 
 class Echo(Dispatchable):
