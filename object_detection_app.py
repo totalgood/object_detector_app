@@ -1,9 +1,10 @@
 import os
-import cv2
 import time
 import argparse
 import multiprocessing
+
 import numpy as np
+import cv2
 import tensorflow as tf
 
 from utils.app_utils import FPS, WebcamVideoStream
@@ -12,7 +13,8 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 from object_detection.utils.nlp import update_state, describe_state, say
 
-CWD_PATH = os.getcwd()
+BASE_DIR = os.path.dirname(__file__)
+CWD_PATH = BASE_DIR
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
