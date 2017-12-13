@@ -16,7 +16,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-lib64/
+lib64
 parts/
 sdist/
 var/
@@ -94,3 +94,5 @@ ENV/
 # tensorflow model weights
 *.tar.gz
 
+# Mac OSX
+.DS_Store

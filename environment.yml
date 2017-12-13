@@ -13,5 +13,6 @@ dependencies:
 - pytest=3.2.1=py35_0
 - pip:
   - tensorflow==1.2.0
+  - paho-mqtt
 prefix: /usr/local/anaconda3/envs/object-detection
 

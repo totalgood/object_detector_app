@@ -4,88 +4,7 @@ import os
 
 import pandas as pd
 
-
-PLURALS = {
-    'apple': 'apples',
-    'backpack': 'backpacks',
-    'ball': 'balls',
-    'banana': 'bananas',
-    'baseball bat': 'baseball bats',
-    'baseball glove': 'baseball gloves',
-    'bear': 'bears',
-    'bed': 'beds',
-    'bench': 'benches',
-    'bicycle': 'bicycles',
-    'bird': 'birds',
-    'boat': 'boats',
-    'book': 'books',
-    'bottle': 'bottles',
-    'bowl': 'bowls',
-    'broccoli': 'broccoli bunches',
-    'bus': 'busses',
-    'cake': 'cakes',
-    'car': 'cars',
-    'carrot': 'carrots',
-    'cat': 'cats',
-    'chair': 'chairs',
-    'clock': 'clocks',
-    'couch': 'couches',
-    'cow': 'cows',
-    'cup': 'cups',
-    'dining table': 'dining tables',
-    'dog': 'dogs',
-    'donut': 'donuts',
-    'elephant': 'elephants',
-    'fire hydrant': 'fire hydrants',
-    'fork': 'forks',
-    'frisbee': 'frisbees',
-    'giraffe': 'giraffes',
-    'hair drier': 'hair driers',
-    'handbag': 'handbags',
-    'horse': 'horses',
-    'hot dog': 'hot dogs',
-    'keyboard': 'keyboards',
-    'kite': 'kites',
-    'knife': 'knives',
-    'laptop': 'laptops',
-    'microwave': 'microwave ovens',
-    'mobile phone': 'mobile phones',
-    'monitor': 'monitors',
-    'motorcycle': 'motorcycles',
-    'mouse': 'mice',
-    'orange': 'oranges',
-    'oven': 'ovens',
-    'parking meter': 'parking meters',
-    'person': 'people',
-    'pizza': 'pizzas',
-    'plane': 'planes',
-    'potted plant': 'potted plants',
-    'refrigerator': 'refrigerators',
-    'remote': 'remotes',
-    'sandwich': 'sandwiches',
-    'scissors': 'pairs of scissors',
-    'sheep': 'sheep',
-    'sink': 'sinks',
-    'skateboard': 'skateboards',
-    'skis': 'pairs of skis',
-    'snowboard': 'snowboards',
-    'spoon': 'spoons',
-    'stop sign': 'stop signs',
-    'suitcase': 'suitcases',
-    'surfboard': 'surfboards',
-    'teddy bear': 'teddy bears',
-    'tennis racket': 'tennis rackets',
-    'tie': 'ties',
-    'toaster': 'toasters',
-    'toilet': 'toilets',
-    'toothbrush': 'toothbrushes',
-    'traffic light': 'traffic lights',
-    'train': 'trains',
-    'truck': 'trucks',
-    'umbrella': 'umbrellas',
-    'vase': 'vases',
-    'wine glass': 'wine glasses',
-    'zebra': 'zebras'}
+from nlp.plurals import PLURALS
 
 
 def pluralize(s):
@@ -126,6 +45,7 @@ def pluralize(s):
 def update_state(boxes, classes, scores, category_index, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
     """ Revise state based on latest frame of information (object boxes)
 
+    TODO(Hobson | Alex) Finish docstring (Need to know all the args and the return val)
     Args:
         boxes (list): 2D numpy array of shape (N, 4): (ymin, xmin, ymax, xmax), in normalized format between [0, 1].
         classes,
@@ -149,12 +69,12 @@ def update_state(boxes, classes, scores, category_index, window=10, max_boxes_to
             # box = tuple(boxes[i].tolist())
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
-            print(display_str)
+            print(display_str)  # TODO(Alex) Convert to logging
             state += [class_name]
     state = collections.Counter(state)
     update_state.states.iloc[i % len(update_state.states), :] = pd.Series(state)
     state = sorted(list(state.items()))
-    i = (i + 1) % len(update_state.states)  # update_state.window
+    i = (i + 1) % len(update_state.states)  # update_state.window  TODO(Hobs) Is `i` used after this?
     return state
 
 
