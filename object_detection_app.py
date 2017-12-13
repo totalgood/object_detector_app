@@ -10,7 +10,9 @@ from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
-from object_detection.utils.nlp import update_state, describe_state, say
+from nlp import update_state, describe_state, say
+from nlp.dispatch import mqttc, dispatcher
+from nlp.command.describe import Describe
 
 CWD_PATH = os.getcwd()
 
@@ -30,7 +32,7 @@ categories = label_map_util.convert_label_map_to_categories(label_map, max_num_c
 category_index = label_map_util.create_category_index(categories)
 
 
-def detect_objects(image_np, sess, detection_graph, utterance_frames=20):
+def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -63,16 +65,21 @@ def detect_objects(image_np, sess, detection_graph, utterance_frames=20):
     state = update_state(boxes=np.squeeze(boxes),
                          classes=np.squeeze(classes).astype(np.int32),
                          scores=np.squeeze(scores), category_index=category_index)
+
+    # Persists image state in a queue
+    state_q.put(state)
+
     if not update_state.i % utterance_frames:
         description = describe_state(state)
-        say(description)
+        if voice_on:
+            say(description)
     return image_np
 
 
 detect_objects.state = []  # poor man's class/object
 
 
-def worker(input_q, output_q):
+def worker(input_q, output_q, state_q, voice_on=False):
     # Load a (frozen) Tensorflow model into memory.
     detection_graph = tf.Graph()
     with detection_graph.as_default():
@@ -85,11 +92,17 @@ def worker(input_q, output_q):
         sess = tf.Session(graph=detection_graph)
 
     fps = FPS().start()
+
     while True:
         fps.update()
         frame = input_q.get()
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        output_q.put(detect_objects(frame_rgb, sess, detection_graph))
+
+        if state_q.full():
+            state_q.get()
+            state_q.get()
+
+        output_q.put(detect_objects(frame_rgb, sess, detection_graph, state_q, voice_on=voice_on))
 
     fps.stop()
     sess.close()
@@ -111,6 +124,10 @@ if __name__ == '__main__':
                         default=5, help='Size of the queue.')
     parser.add_argument('-g', '--gui', action='store_true', default=False, dest='gui',
                         help='Show a GUI/Graphics, or run headless.')
+    parser.add_argument('-s', '--say', action='store_true', default=False, dest='voice_on',
+                        help='Say commands on local computer (for debugging)')
+    parser.add_argument('-sq-size', '--state-queue-size', dest='state_queue_size', type=int,
+                        default=5, help='Size of the object detection state queue size.')
     args = parser.parse_args()
 
     logger = multiprocessing.log_to_stderr()
@@ -118,10 +135,13 @@ if __name__ == '__main__':
 
     input_q = Queue(maxsize=args.queue_size)
     output_q = Queue(maxsize=args.queue_size)
-    pool = Pool(args.num_workers, worker, (input_q, output_q))
+    state_q = Queue(maxsize=args.state_queue_size)
+
+    dispatcher['describe'] = Describe(state_q)
+
+    pool = Pool(args.num_workers, worker, (input_q, output_q, state_q, args.voice_on))
 
     disp_graphics = args.gui
-
     source = args.video_stream_source
 
     if source is None:
@@ -132,6 +152,7 @@ if __name__ == '__main__':
                                       height=args.height).start()
     fps = FPS().start()
 
+    rc = 0  # mqtt client status. Error if not zero
     while True:  # fps._numFrames < 120
         frame = video_capture.read()
         input_q.put(frame)
@@ -148,6 +169,11 @@ if __name__ == '__main__':
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
+        if rc is 0:
+            rc = mqttc.loop()
+        else:
+            print('MQTT Connection error!')
+
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
@@ -156,3 +182,4 @@ if __name__ == '__main__':
     video_capture.stop()
     if disp_graphics:
         cv2.destroyAllWindows()
+
