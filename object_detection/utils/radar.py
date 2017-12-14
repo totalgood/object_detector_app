@@ -54,14 +54,16 @@ class SensorBuffer:
 
         """
         category_index = self.category_index if category_index is None else category_index
-        num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw, boxes.shape[0], len(classes)])
+        num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw,
+                         boxes.shape[0], len(classes)])
 
         # FIXME: unify self.update_state.states with self.samples
-        if self.update_states is None:
+        if self.update_state.states is None:
             # Initialize a matrix of state vectors for the past 20 frames
             self.update_state.row = 0
             self.update_state.window = 20
-            self.update_state.columns = pd.DataFrame(list(self.category_index.values())).set_index('id', drop=True)['name']
+            self.update_state.columns = pd.DataFrame(
+                list(self.category_index.values())).set_index('id', drop=True)['name']
             self.update_state.states = pd.DataFrame(pd.np.zeros((20, len(self.category_index)),
                                                                 dtype=int), columns=self.update_state.columns)
             self.update_state.state0 = pd.Series(index=self.update_state.columns)
@@ -89,4 +91,5 @@ class Radar:
     def __init__(self, category_index=CATEGORY_INDEX, category_names=10):
 
         if isinstance(states, int):
-            sensor_frames = pd.DataFrame(pd.np.zeros((20, len(category_index)), dtype=int), columns=update_state.columns)
+            sensor_frames = pd.DataFrame(pd.np.zeros((20, len(category_index)), dtype=int),
+                                         columns=update_state.columns)
