@@ -3,6 +3,7 @@ import cv2
 import time
 import argparse
 import multiprocessing
+
 import numpy as np
 import tensorflow as tf
 
@@ -30,6 +31,8 @@ print(label_map)
 # though mobilenet can handle
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
+
+from object_detection.constants import CATEGORY_INDEX
 
 
 def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20, voice_on=False):
