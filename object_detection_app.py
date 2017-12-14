@@ -14,7 +14,7 @@ from nlp import update_state, describe_state, say
 from nlp.dispatch import mqttc, dispatcher
 from nlp.command.describe import Describe
 
-from object_detection.constants import CATEGORY_INDEX
+from object_detection.constants import CATEGORY_INDEX, PATH_TO_CKPT
 
 
 def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20, voice_on=False):
