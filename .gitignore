@@ -16,7 +16,7 @@ downloads/
 eggs/
 .eggs/
 lib/
-lib64/
+lib64
 parts/
 sdist/
 var/
@@ -100,4 +100,7 @@ ENV/
 *.broke.*
 *.fixed.*
 *.works.*
+
+# Mac OSX
+.DS_Store
 

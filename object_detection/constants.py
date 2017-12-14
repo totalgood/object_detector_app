@@ -8,10 +8,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
 MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
+LABEL_MAP_FILE = 'mscoco_label_map.pbtxt'
 PATH_TO_CKPT = os.path.join(BASE_DIR, 'object_detection', MODEL_NAME, 'frozen_inference_graph.pb')
-
 # List of the strings that is used to add correct label for each box.
-PATH_TO_LABELS = os.path.join(BASE_DIR, 'object_detection', 'data', 'mscoco_label_map.pbtxt')
+PATH_TO_LABELS = os.path.join(BASE_DIR, 'object_detection', 'data', LABEL_MAP_FILE)
 
 # Loading label map
 LABEL_MAP = label_map_util.load_labelmap(PATH_TO_LABELS)
