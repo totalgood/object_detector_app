@@ -4,12 +4,13 @@ A real-time object recognition application using [Google's TensorFlow Object Det
 
 ## Getting Started
 1. `conda env create -f environment.yml`
-2. `conda install pip`. If you already have pip, you will need to `source deactivate` first and then run `conda install pip`       to make sure there are no errors which will occur in the OS
+2. `conda install pip`. 
+    *If you already have pip, you will need to `source deactivate` first and then run `conda install pip` to make sure there        are no errors which will occur in the OS
 3. To see where the source of your pyhton files that you are running are, use `which python`
 4. If it is not where you have installed the conda environment, you need to change the source for python
-    a. `vim environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the object-detection part, so remember that.
-    b. `source activate name` where name will be replaced with what was stated in your environment.yml file
-    c. `which python` and this time the place where you installed conda will show up
+    * `vim environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the name of the file.
+    * `source activate name` where name will be replaced with what was stated in your environment.yml file
+    * `which python` and this time the place where you installed conda will show up
 5. `python object_detection_app.py`
     Optional arguments (default value):
     * Device index of the camera `--source=0`
@@ -18,21 +19,101 @@ A real-time object recognition application using [Google's TensorFlow Object Det
     * Number of workers `--num-workers=2`
     * Size of the queue `--queue-size=5`
 
-## Tests
+## Development
+### Updating the environment
+`conda env update -f environment.yml`
+
+### Tests
 ```
 pytest -vs utils/
+python -m pytest
+python -m unittest discover -s object_detection -p "*_test.py"
 ```
 
-## Requirements
+### Requirements
 - [Anaconda / Python 3.5](https://www.continuum.io/downloads)
 - [TensorFlow 1.2](https://www.tensorflow.org/)
 - [OpenCV 3.0](http://opencv.org/)
 
+### API 
+Our API is accessible via the MQTT protocol.
+
+#### `dev/chloe/explorer/statement`
+We subscribe to a topic coming from an Android client. Incoming messages should be encoded as JSON objects that match
+the following format: 
+
+```json
+{
+  "messageId": 123,
+  "serviceId": 53453,
+  "userId": 4823942,
+  "timestamp": 1234123412341234,
+  "statement": "describe what is going on around me" 
+  //...
+}
+```
+
+#### `dev/chloe/response/<userid>/<action>`
+We publish to the root topic `dev/chloe/response` via subtopics scoped by the end user's id and the desired action. For instance, if we expect the client with id `1324234` to read the text response aloud (i.e. the `say` action), we will publish to the following topic path: `dev/chloe/response/1324234/say`. 
+
+Messages should be encoded as JSON objects in the following format: 
+
+```json
+{
+  "messageId": 124, // ID for the current payload
+  "statementId": 123, // ID of statement payload (payload this is in response to, see above)
+  "timestamp": 1234123412341234,
+
+  // Was the service successful?
+  "status": {
+    "code": "ch-vis-000", // <project code>-<module code>-<error/status code>
+    "message": "success" 
+  },
+  
+  "action": "say",
+  "args": ["arg1", "arg2", "arg3"], // **Prefer kwargs to args**
+  "kwargs": {
+    "confidence": 0.87,  // argument that should always be present
+    "key1": 1,
+    "key2": "kwarg2"
+  },
+  
+  //...
+}
+```
+
+TODO(Alex) Revise
+Here is an example of a response for "say":
+Topic: `nsf/ai/say`
+Payload: 
+```json
+{
+  "messageId": 124, 
+  "statementId": 123,
+  "timestamp": 1234123412341234,
+  "status": {
+    "code": "ch-vis-000",
+    "message": "success" 
+  },
+  "action": "say",
+  "args": [], 
+  "kwargs": {
+    "confidence": 0.87,
+    "text": "there is 1 person and a chair around you",
+    "wordsPerMin": 200,
+    "voiceGender": "Female"
+  }
+}
+```
+
+### Agent-Chloe Experiment Configuration Discussion
+- Should be configured on dashboard. 
+- Response to explorer should have a delay, whether they come from Chloe or the AI. The explorer should not be able to distinguish between human and machine. 
+- Want to design intentional fallback from the AI to the Human agent. Thus, we need two buttons: the random send (either AI or Human), and a **SEND!** that forcibly sends the human response over the AI. 
+
 ## Notes
-- OpenCV 3.1 might crash on OSX after a while, so that's why I had to switch to version 3.0. See open issue and solution [here](https://github.com/opencv/opencv/issues/5874).
+- ~~OpenCV 3.1 might crash on OSX after a while, so that's why I had to switch to version 3.0. See open issue and solution [here](https://github.com/opencv/opencv/issues/5874).~~
 - Moving the `.read()` part of the video stream in a multiple child processes did not work. However, it was possible to move it to a separate thread.
 
 ## Copyright
-
 See [LICENSE](LICENSE) for details.
-Copyright (c) 2017 [Dat Tran](http://www.dat-tran.com/).
