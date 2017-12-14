@@ -83,6 +83,7 @@ class SensorBuffer:
         self.update_state.states.iloc[self.update_state.row, :] = pd.Series(state)
         self.update_state.row = (self.update_state.row + 1) % len(self.update_state.states)  # update_state.window
         return state
+    update_state.states = None
 
 
 class Radar:
