@@ -32,25 +32,26 @@ class ColorLabeler:
 
     def __init__(self):
         """Init L*a*b* definitions of colors"""
-        self.lab = np.zeros((len(self.colors), 1, 3), dtype='uint8')
-        self.colorNames = []
-
-        for i, (name, rgb) in enumerate(self.colors.items()):
-            self.lab[i] = rgb
-            self.colorNames.append(name)
-
-        self.lab = cv2.cvtColor(self.lab, cv2.COLOR_RGB2LAB)
-        self.labtree = KDTree(self.lab)
+        pass
+        # self.lab = np.zeros((len(self.colors), 1, 3), dtype='uint8')
+        # self.colorNames = []
+        #
+        # for i, (name, rgb) in enumerate(self.colors.items()):
+        #     self.lab[i] = rgb
+        #     self.colorNames.append(name)
+        #
+        # self.lab = cv2.cvtColor(self.lab, cv2.COLOR_RGB2LAB)
+        # self.labtree = KDTree(self.lab)
 
     def _create_mask(self, img):
-        contour = None
-
-        # construct mask for the contour
-        mask = np.zeros(img.shape[:2], dtype='uint8')
-        cv2.drawContours(mask, [contour], -1, 255, -1)
-        mask = cv2.erode(mask, None, iterations=2)
-
-        return mask
+        pass
+        # contour = None
+        #
+        # # construct mask for the contour
+        # mask = np.zeros(img.shape[:2], dtype='uint8')
+        # cv2.drawContours(mask, [contour], -1, 255, -1)
+        # mask = cv2.erode(mask, None, iterations=2)
+        # return mask
 
     def _build_custer_model(self, img, k: int = 5, mask=None) -> KMeans:
 
@@ -73,14 +74,15 @@ class ColorLabeler:
         return hist
 
     def label(self, img):
+        hsv_img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
+        mask = self._create_mask(hsv_img)
+        masked_img = cv2.bitwise_and(hsv_img, hsv_img, mask=mask )
+        vhist = cv2.calcHist([hsv_img[2]], [2], mask, [32], [0, 256])
 
-        mask = self._create_mask(img)
+        black_hist = vhist[:2].sum()
+        white_hist = vhist[:-2].sum()
 
-        model = self._build_custer_model(img, mask)
+        cv2.bitwise_and()
 
-
-        _, idxs = self.labtree.query(mean, k=1)
-
-        return self.colorNames[idxs[0]]
 
 
