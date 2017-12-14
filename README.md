@@ -8,7 +8,7 @@ A real-time object recognition application using [Google's TensorFlow Object Det
     *If you already have pip, you will need to `source deactivate` first and then run `conda install pip` to make sure there        are no errors which will occur in the OS
 3. To see where the source of your pyhton files that you are running are, use `which python`
 4. If it is not where you have installed the conda environment, you need to change the source for python
-    * `vim environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the object-detection part, so remember that.
+    * `vim environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the name of the file.
     * `source activate name` where name will be replaced with what was stated in your environment.yml file
     * `which python` and this time the place where you installed conda will show up
 5. `python object_detection_app.py`
