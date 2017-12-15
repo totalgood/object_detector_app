@@ -1,4 +1,4 @@
-def normalize_x_and_y(image,xmin,xmax, ymin,ymax):
+def normalize_x_and_y(image,xmin,xmax,ymin,ymax):
 	""" 
 	Takes in an image which will be provided and then computes the normalized bouding box information.
 	Args:
@@ -39,6 +39,13 @@ def normalize_x_and_y(image,xmin,xmax, ymin,ymax):
 		(x,y)			(x+width,y)
 
 
-
 	"""
 
+	im_width, im_height = image.size
+	x = (xmin-(im_width/2))/(im_width/2)
+	y = (ymin-(im_height/2))/(image_height/2)
+	width = ((xmax-xmin)/(im_width/2))
+	height = ((ymax-ymin))/(im_height/2)
+	z = 0
+	depth = 0
+	return(x,y,width,height,z,depth)
