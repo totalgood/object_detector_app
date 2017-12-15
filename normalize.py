@@ -97,4 +97,4 @@ def normalize_x_and_y(image,xmin,xmax,ymin,ymax):
 	height = ((ymax-ymin))/(im_height/2)
 	z = 0.0
 	depth = 0.0
-	print(x,y,width,height,z,depth)
+	return(x,y,width,height,z,depth)
