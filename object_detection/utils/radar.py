@@ -34,13 +34,14 @@ class SensorBuffer:
         # TODO: samples is actually 10 DataFrames each with up to N rows, where N is the maximum number of rows to be tracked
         if isinstance(samples, int):
             for i in range(samples):
-                self.samples.append([])
+                self.samples.append(pd.DataFrame())
         else:
             for i, row in enumerate(samples):
                 # list of lists of dicts, lists, Series where each element is the "state" of a detected object
                 self.samples += [pd.DataFrame()]
                 for j, obj in enumerate(row):
-                    self.samples.append(pd.Series(list(zip(*row))[1], index=list(zip(*row))[0], name=i))
+                    self.samples[-1][j] = pd.Series(list(zip(*row))[1], index=list(zip(*row))[0], name=i)
+                self.samples[-1].transpose(inplace=True)
         self.now = 0
 
     def update_state(self, boxes, classes, scores, category_index=None, window=10, max_boxes_to_draw=None, min_score_thresh=.4):
@@ -90,7 +91,8 @@ class Radar:
     """ Inertial 3D position of all objects detected over the course of a session """
 
     def __init__(self, category_index=CATEGORY_INDEX, category_names=10):
+        pass
 
-        if isinstance(states, int):
-            sensor_frames = pd.DataFrame(pd.np.zeros((20, len(category_index)), dtype=int),
-                                         columns=update_state.columns)
+    def update(self, sensor_frame):
+        """ Add or update all the objects listed in a sensor_frame vector to the radar map (inertial tracking of all objects). """
+        pass

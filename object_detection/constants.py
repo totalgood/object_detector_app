@@ -18,3 +18,7 @@ LABEL_MAP = label_map_util.load_labelmap(PATH_TO_LABELS)
 # though mobilenet can handle
 CATEGORIES = label_map_util.convert_label_map_to_categories(LABEL_MAP, max_num_classes=90, use_display_name=True)
 CATEGORY_INDEX = label_map_util.create_category_index(CATEGORIES)
+
+
+COLOR_KEYS = 'red orange yellow green indigo violet black white pink'.split()
+OBJECT_VECTOR_KEYS =
