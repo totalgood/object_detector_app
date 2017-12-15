@@ -97,6 +97,8 @@ def update_state(boxes, classes, scores, category_index, src_img=None, window=10
     return state
 
 
+update_state.states = None
+
 def update_state_dict(image, boxes, classes, scores, category_index, src_img=None, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
     """ Revise state based on latest frame of information (object boxes)
 
@@ -128,6 +130,8 @@ def update_state_dict(image, boxes, classes, scores, category_index, src_img=Non
     num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw, boxes.shape[0], len(classes)])
 
     state_obj = defaultdict(list)
+    if update_state_dict.i is None:
+       update_state_dict.i = 0
 
     for i in range(num_boxes):
         if scores is None or scores[i] > min_score_thresh:
@@ -140,11 +144,14 @@ def update_state_dict(image, boxes, classes, scores, category_index, src_img=Non
                 'color': color_labeler.estimate(image, box=boxes[i])
             }
 
-            state_obj[class_name] += obj_data
+            state_obj[class_name] += [obj_data]
+
+    update_state_dict.i += 1
+
     return state_obj
 
 
-update_state.states = None
+update_state_dict.i = None
 
 # for i in range(update_state.window):
 #     update_state.states.append([])

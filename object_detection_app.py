@@ -10,10 +10,10 @@ from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
-from object_detection.color_labeler import estimate_color, update_state_with_color
 from nlp import update_state_dict, describe_state, say
 from nlp.dispatch import mqttc, dispatcher
-from nlp.command.describe import Describe
+from nlp.command import Describe, DescribeColor
+
 
 CWD_PATH = os.getcwd()
 
@@ -71,7 +71,7 @@ def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=2
     # Persists image state in a queue
     _state_q.put(state)
 
-    if not update_state.i % utterance_frames:
+    if not update_state_dict.i % utterance_frames:
         description = describe_state(state)
         if voice_on:
             say(description)
@@ -139,6 +139,7 @@ if __name__ == '__main__':
     output_q = Queue(maxsize=args.queue_size)
     state_q = Queue(maxsize=args.state_queue_size)
 
+    dispatcher['color'] = DescribeColor(state_q)
     dispatcher['describe'] = Describe(state_q)
 
     pool = Pool(args.num_workers, worker, (input_q, output_q, state_q, args.voice_on))

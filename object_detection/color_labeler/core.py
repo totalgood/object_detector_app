@@ -44,6 +44,8 @@ def estimate_color(img, box=None):
         True
         >>> abs(result['pink'] - result[-1] < 0.0001)
         True
+        >>> result.idxmax()
+        'red'
 
     Returns:
         Dictionary of color-frequency pairs.
@@ -61,14 +63,15 @@ def estimate_color(img, box=None):
 
     # Calculate indexed histograms of the Value dimension
     n_bins_val = 32
-    bw_bin_thresh = 5
+    black_bin_thresh = 5
+    white_bin_thresh = 7
 
     bins_val = np.linspace(0, 255, n_bins_val, endpoint=True, dtype='uint8')
     hist_val_idx = np.digitize(flat_img[:, 2], bins_val)
     # hist_val, _ = np.histogram(hist_val_idx)
 
-    is_black_pxl = hist_val_idx <= bw_bin_thresh
-    is_white_pxl = hist_val_idx >= (n_bins_val - bw_bin_thresh)
+    is_black_pxl = hist_val_idx <= black_bin_thresh
+    is_white_pxl = hist_val_idx >= (n_bins_val - white_bin_thresh)
 
     black_idx = hist_val_idx[is_black_pxl]
     white_idx = hist_val_idx[is_white_pxl]
@@ -100,7 +103,7 @@ def estimate_color(img, box=None):
     od['cyan'] = hist_hue[4] / total
     od['blue'] = hist_hue[5] / total
     od['purple'] = hist_hue[6] / total
-    od['pink'] = hist_hue[7]
+    od['pink'] = hist_hue[7] / total
     output = pd.Series(od)
 
     return output
@@ -125,7 +128,7 @@ def _get_bbox_center_img(img, box=None):
 
     """
     # get space measures
-    if not box:
+    if box is None:
         ymin, xmin, ymax, xmax = (0, 0, img.shape[0], img.shape[1])
     else:
         ymin, xmin, ymax, xmax = box

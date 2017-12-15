@@ -1,4 +1,3 @@
 from object_detection.color_labeler.core import estimate_color as estimate
 from object_detection.color_labeler.core import estimate_color
-from object_detection.color_labeler.core import update_state_with_color
 
