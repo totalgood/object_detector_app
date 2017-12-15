@@ -10,7 +10,8 @@ from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
-from nlp import update_state, describe_state, say
+from object_detection.color_labeler import estimate_color, update_state_with_color
+from nlp import update_state_dict, describe_state, say
 from nlp.dispatch import mqttc, dispatcher
 from nlp.command.describe import Describe
 
@@ -31,9 +32,6 @@ print(label_map)
 # TODO(All) Expand number of classes
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
-
-
-
 
 
 def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=20, voice_on=False):
@@ -66,7 +64,7 @@ def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=2
         line_thickness=8)
 
     # Describe the image
-    state = update_state(boxes=np.squeeze(boxes),
+    state = update_state_dict(image=image_np, boxes=np.squeeze(boxes),
                          classes=np.squeeze(classes).astype(np.int32),
                          scores=np.squeeze(scores), category_index=category_index)
 
