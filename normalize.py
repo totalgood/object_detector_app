@@ -53,8 +53,21 @@ def normalize_x_and_y(image,xmin,xmax,ymin,ymax):
 	xmin < 0
 	>>> normalize_x_and_y(image,10,90,90,10)
 	ymin is greater than ymax
+	>>> normalize_x_and_y(image,101,150,50,100)
+	xmin is greater than image width
 	>>> normalize_x_and_y(image,10,90,10,190)
 	ymax is greater than image height
+	>>> normalize_x_and_y(iamge,0,200,100,100)
+	xmax is greater than image width
+	>>> normalize_x_and_y(image,0,100,-10,100)
+	ymin < 0
+	>>> normalize_x_and_y(image,50,50,50,50)
+	0.0 0.0 0.0 0.0 0.0 0.0
+	>>> normalize_x_and_y(image,50,100,50,100)
+	0.0 0.0 1.0 1.0 0.0 0.0
+	>>> normalize_x_and_y(image,0,100,0,100)
+	-1.0 -1.0 2.0 2.0 0.0 0.0
+	
 	"""
 
 	#TODO: Check if I really need this next line or not
