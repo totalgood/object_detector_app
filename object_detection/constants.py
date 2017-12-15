@@ -19,6 +19,7 @@ LABEL_MAP = label_map_util.load_labelmap(PATH_TO_LABELS)
 CATEGORIES = label_map_util.convert_label_map_to_categories(LABEL_MAP, max_num_classes=90, use_display_name=True)
 CATEGORY_INDEX = label_map_util.create_category_index(CATEGORIES)
 
-
+LABEL_KEYS = 'category instance'.split()
 COLOR_KEYS = 'red orange yellow green indigo violet black white pink'.split()
-OBJECT_VECTOR_KEYS =
+BB_KEYS = 'x y z width height depth'.split()
+OBJECT_VECTOR_KEYS = LABEL_KEYS + BB_KEYS + COLOR_KEYS

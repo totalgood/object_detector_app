@@ -56,4 +56,5 @@ def add(value, num=0)
 ### Workflow
 
 * branch off master whenever you begin a new feature/task
-* commit often, mentioning the Jira ticket number in the comment, where possible (e.g. "#")
+* commit often, mentioning the Jira ticket number in the comment, where possible (e.g. NSF-4)
+* brief active voice comments, with optional Jira transition commands: `git commit -am 'NSF-4 #start-review integrate location and color vectors'`)
