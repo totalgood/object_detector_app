@@ -10,9 +10,10 @@ from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
-from nlp import update_state, describe_state, say
+from nlp import update_state_dict, describe_state, say
 from nlp.dispatch import mqttc, dispatcher
-from nlp.command.describe import Describe
+from nlp.command import Describe, DescribeColor
+
 
 CWD_PATH = os.getcwd()
 
@@ -28,11 +29,12 @@ label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
 print(label_map)
 
 # though mobilenet can handle
+# TODO(All) Expand number of classes
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=90, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
 
-def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20, voice_on=False):
+def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=20, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -62,14 +64,14 @@ def detect_objects(image_np, sess, detection_graph, state_q, utterance_frames=20
         line_thickness=8)
 
     # Describe the image
-    state = update_state(boxes=np.squeeze(boxes),
+    state = update_state_dict(image=image_np, boxes=np.squeeze(boxes),
                          classes=np.squeeze(classes).astype(np.int32),
                          scores=np.squeeze(scores), category_index=category_index)
 
     # Persists image state in a queue
-    state_q.put(state)
+    _state_q.put(state)
 
-    if not update_state.i % utterance_frames:
+    if not update_state_dict.i % utterance_frames:
         description = describe_state(state)
         if voice_on:
             say(description)
@@ -137,6 +139,7 @@ if __name__ == '__main__':
     output_q = Queue(maxsize=args.queue_size)
     state_q = Queue(maxsize=args.state_queue_size)
 
+    dispatcher['color'] = DescribeColor(state_q)
     dispatcher['describe'] = Describe(state_q)
 
     pool = Pool(args.num_workers, worker, (input_q, output_q, state_q, args.voice_on))
