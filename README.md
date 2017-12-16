@@ -55,7 +55,6 @@ the following format:
 
 
 #### Any --> Explorer `dev/chloe/explorer/<userid>/response`
-We publish to the root topic `dev/chloe/response` via subtopics scoped by the end user's id and the desired action. For instance, if we expect the client with id `1324234` to read the text response aloud (i.e. the `say` action), we will publish to the following topic path: `dev/chloe/response/1324234/say`. 
 
 Messages should be encoded as JSON objects in the following format: 
 
@@ -75,7 +74,7 @@ Messages should be encoded as JSON objects in the following format:
   "args": ["arg1", "arg2", "arg3"], // **Prefer kwargs to args**
   "kwargs": {
     "confidence": 0.87,  // argument that should always be present
-    "source": "chloe" // or "human"
+    "source": "chloe" // or "human", should always be present
     "key1": 1,
     "key2": "kwarg2"
   },
@@ -86,7 +85,7 @@ Messages should be encoded as JSON objects in the following format:
 
 TODO(Alex) Revise
 Here is an example of a response for "say":
-Topic: `nsf/ai/say`
+Topic: `dev/chloe/explorer/12345/response`
 Payload: 
 ```json
 {
