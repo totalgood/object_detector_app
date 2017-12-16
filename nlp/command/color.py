@@ -1,10 +1,9 @@
-from nlp import describe_state
 from nlp.dispatch import Dispatchable
 
 
 class DescribeColor(Dispatchable):
 
-    color_tmpl = "The {} is primarily {}"
+    color_tmpl = "The {obj_name} is primarily {color}"
 
     def __init__(self, state_q):
         self.state_q = state_q
@@ -22,6 +21,11 @@ class DescribeColor(Dispatchable):
                 max_color = color_freq.idxmax()
 
                 print(state)
-                self.send({'response': self.color_tmpl.format(obj_name, max_color)}, subtopic=['say'])
+
+                payload = {
+                    'response': self.color_tmpl.format(obj_name=obj_name, color=max_color)
+                }
+
+                self.send(payload, subtopic=['say'])
 
 
