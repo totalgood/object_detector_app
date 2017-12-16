@@ -38,7 +38,7 @@ python -m unittest discover -s object_detection -p "*_test.py"
 ### API 
 Our API is accessible via the MQTT protocol.
 
-#### `dev/chloe/explorer/statement`
+#### Android --> Chloe `dev/chloe/explorer/<userid>/statement`
 We subscribe to a topic coming from an Android client. Incoming messages should be encoded as JSON objects that match
 the following format: 
 
@@ -53,7 +53,8 @@ the following format:
 }
 ```
 
-#### `dev/chloe/response/<userid>/<action>`
+
+#### Any --> Explorer `dev/chloe/explorer/<userid>/response`
 We publish to the root topic `dev/chloe/response` via subtopics scoped by the end user's id and the desired action. For instance, if we expect the client with id `1324234` to read the text response aloud (i.e. the `say` action), we will publish to the following topic path: `dev/chloe/response/1324234/say`. 
 
 Messages should be encoded as JSON objects in the following format: 
@@ -74,6 +75,7 @@ Messages should be encoded as JSON objects in the following format:
   "args": ["arg1", "arg2", "arg3"], // **Prefer kwargs to args**
   "kwargs": {
     "confidence": 0.87,  // argument that should always be present
+    "source": "chloe" // or "human"
     "key1": 1,
     "key2": "kwarg2"
   },
@@ -99,12 +101,15 @@ Payload:
   "args": [], 
   "kwargs": {
     "confidence": 0.87,
+    "source": "chloe"
     "text": "there is 1 person and a chair around you",
     "wordsPerMin": 200,
     "voiceGender": "Female"
   }
 }
 ```
+#### Chloe --> Test Harness/Agent `dev/chloe/agent/<userid>/response`
+The test harness gets the same message as the above section.
 
 ### Agent-Chloe Experiment Configuration Discussion
 - Should be configured on dashboard. 
