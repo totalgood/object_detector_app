@@ -13,11 +13,16 @@ A real-time object recognition application using [Google's TensorFlow Object Det
     * `which python` and this time the place where you installed conda will show up
 5. `python object_detection_app.py`
     Optional arguments (default value):
+    * Show all commands `--help`
     * Device index of the camera `--source=0`
     * Width of the frames in the video stream `--width=480`
     * Height of the frames in the video stream `--height=360`
     * Number of workers `--num-workers=2`
     * Size of the queue `--queue-size=5`
+    * URL for video stream `--url=<rstp://...>`
+    * Turn on GUI (defaulted to run headless) `--gui`
+    * Turn on vocal commands on MacOS (defaulted to silent) `--say`
+    * State Buffer Size, how many "states" to capture `--state-queue-size=5`
 
 ## Development
 ### Updating the environment
