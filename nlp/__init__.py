@@ -1,2 +1,1 @@
-from nlp.core import update_state, update_state_dict, describe_state, say
-
+from nlp.core import update_state, describe_scene, say
