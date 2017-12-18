@@ -1,6 +1,4 @@
-from skimage.data import coffee
-
-def _normalize_x_and_y(image, box):
+def normalize_position(image, box):
     """ 
     Takes in an image which will be provided and then computes the normalized bouding box information.
     Args:
@@ -43,25 +41,25 @@ def _normalize_x_and_y(image, box):
     these test cases are for a 100*100 image but generic code is built to run any height and width
     >>> from skimage.data import coffee
     >>> img = coffee()
-    >>> _normalize_x_and_y(img,(100,100,50,50))
+    >>> normalize_position(img,(100,100,50,50))
     (-0.5, -0.8333333333333334, 0.0, 0.0, 0.0, 0.0)
-    >>> _normalize_x_and_y(img,(10,90,10,90))
+    >>> normalize_position(img,(10,90,10,90))
     (-0.95, -0.9666666666666667, 0.4, 0.26666666666666666, 0.0, 0.0)
-    >>> _normalize_x_and_y(img,(0,400,0,600))
+    >>> normalize_position(img,(0,400,0,600))
     (-1.0, -1.0, 2.0, 2.0, 0.0, 0.0)
-    >>> _normalize_x_and_y(img,(100,50,0,600))
+    >>> normalize_position(img,(100,50,0,600))
     Traceback (most recent call last):
     ...
     AssertionError: xmin is greater than xmax
-    >>> _normalize_x_and_y(img,(100,600,0,600))
+    >>> normalize_position(img,(100,600,0,600))
     Traceback (most recent call last):
     ...
     AssertionError: xmax is greater than image width
-    >>> _normalize_x_and_y(img,(100,400,200,100))
+    >>> normalize_position(img,(100,400,200,100))
     Traceback (most recent call last):
     ...
     AssertionError: ymin is greater than ymax
-    >>> _normalize_x_and_y(img,(-100,400,100,100))
+    >>> normalize_position(img,(-100,400,100,100))
     Traceback (most recent call last):
     ...
     AssertionError: xmin < 0
@@ -122,14 +120,14 @@ def position(image,box):
 
     """
     
-    x,y,width,height,z,depth = _normalize_x_and_y(image,box)
+    x,y,width,height,z,depth = normalize_position(image,box)
     position = ""
-    if (x <= (0)):
+    if (x <= 0):
         if (x+width <= 0):
             position = "left"
         else:
             position = "center"
-    if (x >= (0)):
+    if (x >= 0):
         position = "right"
     
     return (position)
