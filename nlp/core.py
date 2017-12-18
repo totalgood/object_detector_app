@@ -1,7 +1,6 @@
 """ Natural Language Processing (Generation) utilities """
 import collections
 import os
-import typing
 
 import pandas as pd
 import object_detection.color_labeler as color_labeler
@@ -167,45 +166,22 @@ def describe_state(state):
     >>> '2 cups' in statement and 'and' in statement and '1 skis' in statement
     True
     """
-    state_counts = _count_objects(state)
+    def count_objects(state_dict):
+        new_dict = {k: len(v) for k, v in state_dict.items()}
+        return new_dict
+
+    state_counts = count_objects(state)
 
     plural_description_list = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in state_counts.items()]
 
-    delim_description = compose_comma_series(plural_description_list)
-
-    return delim_description
-
-
-def compose_comma_series(noun_list: typing.List[str]) -> str:
-    """ Join a list of noun phrases into a comma delimited series
-
-    Args:
-        noun_list: list of noun phrases (object + adjective descriptors)
-
-    Returns:
-        string consisting of a comma delimited series of noun phrases
-
-    Examples:
-        >>> compose_comma_series(['1 pair of skis', '2 cups'])
-        '1 pair of skis and 2 cups'
-        >>> compose_comma_series(['1 pair of skis', '2 cups', '1 laptop'])
-        '1 pair of skis, 2 cups and 1 laptop'
-    """
-
-    comma_list = ', '.join(noun_list[:-2])
-    conjunction = ' and '.join(noun_list[-2:])
-
+    comma_list = ', '.join(plural_description_list[:-2])
+    conjunction = ' and '.join(plural_description_list[-2:])
     if len(comma_list) > 0:
-        delim_description = comma_list + ', ' + conjunction
+        delim_description = comma_list + ',' + conjunction
     else:
         delim_description = conjunction
 
     return delim_description
-
-
-def _count_objects(state_dict):
-    new_dict = {k: len(v) for k, v in state_dict.items()}
-    return new_dict
 
 
 def say(s, rate=230):
@@ -213,9 +189,8 @@ def say(s, rate=230):
 
     If "say" command is not available in os.system then print the text to stdout.
 
-    >>> result = say('hello')  # TODO(Ashwin | Alex | Hobbs) This test will fail on Jenkins
-    >>> result == 'hello' or result == False
-    True
+    >>> say('hello')
+    'hello'
     """
     try:
         os.system('say --rate={rate} "{s}"'.format(**dict(rate=rate, s=s)))
