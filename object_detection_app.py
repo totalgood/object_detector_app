@@ -9,16 +9,15 @@ import tensorflow as tf
 from utils.app_utils import FPS, WebcamVideoStream
 from multiprocessing import Queue, Pool
 from object_detection.utils import visualization_utils as vis_util
-from nlp import update_state_dict, describe_state, say
+from nlp import describe_scene, say, update_state
 from nlp.dispatch import mqttc, dispatcher
 from nlp.command import Describe, DescribeColor
-
 
 
 from object_detection.constants import CATEGORY_INDEX, PATH_TO_CKPT
 
 
-def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=20, voice_on=False):
+def detect_objects(image_np, sess, detection_graph, _state_q, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -48,17 +47,17 @@ def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=2
         line_thickness=8)
 
     # Describe the image
-    state = update_state_dict(image=image_np, boxes=np.squeeze(boxes),
-                         classes=np.squeeze(classes).astype(np.int32),
-                         scores=np.squeeze(scores), category_index=CATEGORY_INDEX)
+    object_vectors = update_state(image=image_np, boxes=np.squeeze(boxes),
+                                  classes=np.squeeze(classes).astype(np.int32),
+                                  scores=np.squeeze(scores), category_index=CATEGORY_INDEX)
 
-    # Persists image state in a queue
-    _state_q.put(state)
+    # Persists image state (list of object vectors for that image) in a queue
+    _state_q.put(object_vectors)
 
-    if not update_state_dict.i % utterance_frames:
-        description = describe_state(state)
-        if voice_on:
-            say(description)
+    # FIXME: this should not be happening here, but should be happening in the commands.py executive logic
+    description = describe_scene(object_vectors)
+    if voice_on:
+        say(description)
     return image_np
 
 
