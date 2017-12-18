@@ -106,11 +106,11 @@ def position(image,box):
     >>> from skimage.data import coffee
     >>> img = coffee()
     >>> position(img,(0,400,0,600))
-    center
+    'center'
     >>> position(img,(0,100,0,200))
-    left
+    'left'
     >>> position(img,(200,400,300,400))
-    right
+    'right'
     >>> position(img,(-100,200,300,400))
     Traceback (most recent call last):
     ...
@@ -132,7 +132,7 @@ def position(image,box):
     if (x >= (0)):
         position = "right"
     
-    print (position)
+    return (position)
 
 if __name__ == '__main__':
     import doctest
