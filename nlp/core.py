@@ -83,14 +83,14 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
 def describe_scene(object_vectors):
     """ Convert a state vector dictionary of objects and their counts into a natural language string
 
-    >>> describe_scene({'skis': [{'score': 0.99}, {'score': 0.88}]})
-    '2 pairs of skis'
+            categ instnc x   y   z  wdth hght dpth blk wht red orng yel  grn  cyn  blu purp pink
     >>> object_vectors = [
-    ...    # categ instnc x   y   z  wdth hght dpth blk wht red orng yel  grn  cyn  blu purp pink
-    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
     ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
     ... ]
-    >>> describe_scene(object_vectors)
+    >>> desc = describe_scene(object_vectors)
+    >>> '1 cup' in desc and ' and ' in desc and '1 ski' in desc
+    True
     """
     def count_objects(object_vectors):
         return collections.Counter(list(zip(*object_vectors))[0]) if len(object_vectors) else {}
