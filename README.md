@@ -13,11 +13,16 @@ A real-time object recognition application using [Google's TensorFlow Object Det
     * `which python` and this time the place where you installed conda will show up
 5. `python object_detection_app.py`
     Optional arguments (default value):
+    * Show all commands `--help`
     * Device index of the camera `--source=0`
     * Width of the frames in the video stream `--width=480`
     * Height of the frames in the video stream `--height=360`
     * Number of workers `--num-workers=2`
     * Size of the queue `--queue-size=5`
+    * URL for video stream `--url=<rstp://...>`
+    * Turn on GUI (defaulted to run headless) `--gui`
+    * Turn on vocal commands on MacOS (defaulted to silent) `--say`
+    * State Buffer Size, how many "states" to capture `--state-queue-size=5`
 
 ## Development
 ### Updating the environment
@@ -38,7 +43,7 @@ python -m unittest discover -s object_detection -p "*_test.py"
 ### API 
 Our API is accessible via the MQTT protocol.
 
-#### `dev/chloe/explorer/statement`
+#### Android --> Chloe `dev/chloe/explorer/<userid>/statement`
 We subscribe to a topic coming from an Android client. Incoming messages should be encoded as JSON objects that match
 the following format: 
 
@@ -53,8 +58,8 @@ the following format:
 }
 ```
 
-#### `dev/chloe/response/<userid>/<action>`
-We publish to the root topic `dev/chloe/response` via subtopics scoped by the end user's id and the desired action. For instance, if we expect the client with id `1324234` to read the text response aloud (i.e. the `say` action), we will publish to the following topic path: `dev/chloe/response/1324234/say`. 
+
+#### Any --> Explorer `dev/chloe/explorer/<userid>/response`
 
 Messages should be encoded as JSON objects in the following format: 
 
@@ -74,6 +79,7 @@ Messages should be encoded as JSON objects in the following format:
   "args": ["arg1", "arg2", "arg3"], // **Prefer kwargs to args**
   "kwargs": {
     "confidence": 0.87,  // argument that should always be present
+    "source": "chloe" // or "human", should always be present
     "key1": 1,
     "key2": "kwarg2"
   },
@@ -84,7 +90,7 @@ Messages should be encoded as JSON objects in the following format:
 
 TODO(Alex) Revise
 Here is an example of a response for "say":
-Topic: `nsf/ai/say`
+Topic: `dev/chloe/explorer/12345/response`
 Payload: 
 ```json
 {
@@ -99,12 +105,15 @@ Payload:
   "args": [], 
   "kwargs": {
     "confidence": 0.87,
+    "source": "chloe"
     "text": "there is 1 person and a chair around you",
     "wordsPerMin": 200,
     "voiceGender": "Female"
   }
 }
 ```
+#### Chloe --> Test Harness/Agent `dev/chloe/agent/<userid>/response`
+The test harness gets the same message as the above section.
 
 ### Agent-Chloe Experiment Configuration Discussion
 - Should be configured on dashboard. 
