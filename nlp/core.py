@@ -57,7 +57,6 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
         category_index (dict of dicts): {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'},...}
     Returns:
         list: list of object vectors, for example:
-        LABEL_KEYS = '.split()
             [
                 ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
                 ['ski', 0, .80, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
@@ -86,8 +85,9 @@ def describe_scene(object_vectors):
     >>> describe_scene({'skis': [{'score': 0.99}, {'score': 0.88}]})
     '2 pairs of skis'
     >>> object_vectors = [
-    ...    ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
-    ...    ['ski', 0, .80, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ...    # categ instnc x   y   z  wdth hght dpth blk wht red orng yel  grn  cyn  blu purp pink
+    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
     ... ]
     >>> describe_scene(object_vectors)
     """
@@ -108,7 +108,7 @@ def describe_scene(object_vectors):
     return delim_description
 
 
-def say(s, rate=230):
+def say(s, rate=250):
     """ Convert text to speech (TTS) and play resulting audio to speakers
 
     If "say" command is not available in os.system then print the text to stdout and return False.
@@ -116,9 +116,13 @@ def say(s, rate=230):
     >>> say('hello')
     'hello'
     """
+    shell_cmd = 'say --rate={rate} "{s}"'.format(**dict(rate=rate, s=s))
     try:
-        os.system('say --rate={rate} "{s}"'.format(**dict(rate=rate, s=s)))
+        status = os.system(shell_cmd)
+        if status > 0:
+            print('os.system({shell_cmd}) returned nonzero status: {status}'.format(**locals()))
+            raise OSError
         return s
-    except:
+    except OSError:
         print(s)
     return False
