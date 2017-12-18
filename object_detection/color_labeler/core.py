@@ -2,11 +2,14 @@
 Assigns a human understandable label to a color value
 
 
+TODO: in python there's rarely a need for generic file or folder names like core.py or main.py
 """
 from collections import OrderedDict
 import pandas as pd
 import numpy as np
 import cv2
+
+from object_detection.constants import COLOR_KEYS
 
 
 def estimate_color(img, box=None):
@@ -16,40 +19,23 @@ def estimate_color(img, box=None):
         img: source RGB image
         box: bounding box (ymin, xmin, ymax, xmax)
 
+    Returns:
+        pd.Series: color histogram where the values are normalized pixel color frequencies
+
     Examples:
         >>> from skimage.data import coffee
-        >>> img = coffee()
-        >>> result = estimate_color(img)
-        >>> result.get('black', None) is not None
-        True
-        >>> result.get('white', None) is not None
-        True
-
-        # Colors are within sensible range
-        >>> 0 <= result['black'] <= 0.4
-        True
-        >>> 0.1 <= result['white'] <= 0.3
-        True
-        >>> 0 <= result['blue'] <= 0.1
-        True
-        >>> 0.4 <= result['red'] <= 1
-        True
-
-        # Order of output is enforced
-        >>> abs(result['black'] - result[0]) < 0.0001
-        True
-        >>> abs(result['white'] - result[1]) < 0.0001
-        True
-        >>> abs(result['purple'] - result[-2] < 0.0001)
-        True
-        >>> abs(result['pink'] - result[-1] < 0.0001)
-        True
-        >>> result.idxmax()
-        'red'
-
-    Returns:
-        Dictionary of color-frequency pairs.
-
+        >>> estimate_color(coffee()).round(1)
+        black     0.1
+        white     0.3
+        red       0.5
+        orange    0.2
+        yellow    0.0
+        green     0.0
+        cyan      0.0
+        blue      0.0
+        purple    0.0
+        pink      0.0
+        Name: color, dtype: float64
     """
 
     # Get center of image (via bounding box)
@@ -93,23 +79,7 @@ def estimate_color(img, box=None):
 
     total = n_black + n_white + sum(hist_hue)
 
-    od = OrderedDict()
-    od['black'] = n_black / total
-    od['white'] = n_white / total
-    od['red'] = hist_hue[0] / total
-    od['orange'] = hist_hue[1] / total
-    od['yellow'] = hist_hue[2] / total
-    od['green'] = hist_hue[3] / total
-    od['cyan'] = hist_hue[4] / total
-    od['blue'] = hist_hue[5] / total
-    od['purple'] = hist_hue[6] / total
-    od['pink'] = hist_hue[7] / total
-    output = pd.Series(od)
-
-    return output
-
-
-
+    return pd.Series([n_black, n_white] + list(hist_hue), index=COLOR_KEYS, name='color') / total
 
 
 def _get_bbox_center_img(img, box=None):
@@ -151,9 +121,3 @@ def _get_bbox_center_img(img, box=None):
     obj_center = img[ystart:yend, xstart:xend, :]
 
     return obj_center
-
-
-
-
-
-
