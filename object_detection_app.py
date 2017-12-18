@@ -17,7 +17,7 @@ from nlp.command import Describe, DescribeColor
 from object_detection.constants import CATEGORY_INDEX, PATH_TO_CKPT
 
 
-def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=1, voice_on=False):
+def detect_objects(image_np, sess, detection_graph, _state_q, voice_on=False):
     # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
     image_np_expanded = np.expand_dims(image_np, axis=0)
     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
@@ -54,6 +54,7 @@ def detect_objects(image_np, sess, detection_graph, _state_q, utterance_frames=1
     # Persists image state (list of object vectors for that image) in a queue
     _state_q.put(object_vectors)
 
+    # FIXME: this should not be happening here, but should be happening in the commands.py executive logic
     description = describe_scene(object_vectors)
     if voice_on:
         say(description)
