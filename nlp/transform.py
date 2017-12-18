@@ -1,11 +1,17 @@
 def normalize_position(image, box):
-    """ 
-    Takes in an image which will be provided and then computes the normalized bouding box information.
+    """ Takes in an image which will be provided and then computes the normalized bouding box information.
+
     Args:
-        xmin - this is the left most point of the bounding box
-        xmax - this is the right most point of the bounding box
-        ymin - this is the lowest point of the bounding box
-        ymax - this is the highest point of the bouding box
+        image (3D np.array): (rows, columns, channels)
+            rows (int): width of image
+            columns (int): height of image
+            channels (int): number of channels, if the image is in color
+        box (tuple): (xmin, xmax, ymin, ymax)
+            xmin (int): left most edge of the bounding box
+            xmax (int): right most edge of the bounding box
+            ymin (int): lowest edge of the bounding box
+            ymax (int): highest edge of the bouding box
+
     From image, try to get image width and height such that we can scale it appropriately
 
         (xmin,ymax).    (xmax,ymax)
@@ -19,14 +25,14 @@ def normalize_position(image, box):
         (xmin,ymin)     (xmax,ymin)
 
 
-
-    The output will be the following 6 parameters
-        x - the left most point and is scaled between -1 and 1. to scale, can do (xmin-image_width/2)/(image_width/2)
-        y - the bottom most point and is scaled between -1 and 1. to scale, can do (ymin-image_height/2)/(image_height/2)
-        width - this is defined as xmax-xmin. to scale, compute (xmax-xmin)/(image_width/2)
-        height - this is defined as ymax-ymin. to scale, compute (ymax-ymin)/(image_height/2)
-        z - set to 0
-        depth - set to 0
+    Returns: 
+        tuple: (x, y, z, widht, height, depth) 
+            x (float): left most point and is scaled between -1 and 1. to scale, can do (xmin-image_width/2)/(image_width/2)
+            y (float): bottom most point and is scaled between -1 and 1. to scale, can do (ymin-image_height/2)/(image_height/2)
+            z (float): set to 0
+            width (float):this is defined as xmax-xmin. to scale, compute (xmax-xmin)/(image_width/2)
+            height (float): this is defined as ymax-ymin. to scale, compute (ymax-ymin)/(image_height/2)
+            depth (float): set to 0
 
         (x,y+height).   (x+width, y+height)
         ---------------
@@ -38,15 +44,14 @@ def normalize_position(image, box):
         ________________
         (x,y)           (x+width,y)
 
-    these test cases are for a 100*100 image but generic code is built to run any height and width
     >>> from skimage.data import coffee
     >>> img = coffee()
     >>> normalize_position(img,(100,100,50,50))
     (-0.5, -0.8333333333333334, 0.0, 0.0, 0.0, 0.0)
     >>> normalize_position(img,(10,90,10,90))
-    (-0.95, -0.9666666666666667, 0.4, 0.26666666666666666, 0.0, 0.0)
+    (-0.95, -0.9666666666666667, 0.0, 0.4, 0.26666666666666666, 0.0)
     >>> normalize_position(img,(0,400,0,600))
-    (-1.0, -1.0, 2.0, 2.0, 0.0, 0.0)
+    (-1.0, -1.0, 0.0, 2.0, 2.0, 0.0)
     >>> normalize_position(img,(100,50,0,600))
     Traceback (most recent call last):
     ...
@@ -84,23 +89,25 @@ def normalize_position(image, box):
     height = (ymax - ymin) / y_center
     z = 0.0
     depth = 0.0
-    return (x, y, width, height, z, depth)
+    return (x, y, z, width, height, depth)
 
 def position(image,box):
-    """ 
-    this function takes in the image as its argument.
-    the function then calls the normalizing function to get the values of x,y, width and height from
-    normalize function. 
-    Once the values of x,y,width and height are received, the function returns what it believes to be the
-    position of the object.
-    The position of the object has been defined in the follwing manner:
-        if the x position is less than half of the image widht, it is in the left side but to check if it is 
-        centered or not, I check the value of x+width of box. If the value of x+width is greater than 0 and the
-        value of x is less than 0, i say that the object is centered. In the case that x < 0 and x+width < 0, 
-        I say the object is to the left. In any case, since the width cannot be negative, if x >= 0, I say that it
-        is to the right as the position. 
+    """ takes an image and the bounding box, returns the position of the bounding box with respect to the image
+    
+    Args:
+        image (3D np.array): (rows, columns, channels)
+            rows (int): width of image
+            columns (int): height of image
+            channels (int): number of channels, if the image is in color
+        box (tuple): (xmin, xmax, ymin, ymax)
+            xmin (int): left most edge of the bounding box
+            xmax (int): right most edge of the bounding box
+            ymin (int): lowest edge of the bounding box
+            ymax (int): highest edge of the bouding box
+    
+    Returns:
+        string: 'left', 'right' or 'center'
 
-    Also have accounted for error messages. 
     >>> from skimage.data import coffee
     >>> img = coffee()
     >>> position(img,(0,400,0,600))
@@ -120,7 +127,7 @@ def position(image,box):
 
     """
     
-    x,y,width,height,z,depth = normalize_position(image,box)
+    x, y, z, width, height, depth = normalize_position(image,box)
     position = ""
     if (x <= 0):
         if (x+width <= 0):
