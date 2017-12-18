@@ -4,7 +4,8 @@ import os
 import typing
 
 import pandas as pd
-import object_detection.color_labeler as color_labeler
+# fix the antipattern of having a separate folder for every function/class
+from object_detection.color_labeler import estimate as estimate_color
 
 from nlp.plurals import PLURALS
 from collections import defaultdict
@@ -45,131 +46,58 @@ def pluralize(s):
         return word + 's'
 
 
-def update_state(boxes, classes, scores, category_index, src_img=None, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
+def update_state(image, boxes, classes, scores, category_index, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
     """ Revise state based on latest frame of information (object boxes)
 
-    TODO(Hobson | Alex) Finish docstring (Need to know all the args and the return val)
+    TODO: complete docstring
+
     Args:
         boxes (list): 2D numpy array of shape (N, 4): (ymin, xmin, ymax, xmax), in normalized format between [0, 1].
         classes,
     Args (that should be class attributes):
         category_index (dict of dicts): {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'},...}
     Returns:
-
-        Example Output:
-        {
-            "cup":
-                 [
-                    { color: [<color_vec>] },
-                    { color: [<color_vec>] ),
-                ],
-            "person":
-                [
-                    { color: [<color_vec>] },
-                    { color: [<color_vec>] },
-                    { color: [<color_vec>] }
-                ],
-            ...
-
-        }
+        list: list of object vectors, for example:
+            [
+                ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+                ['ski', 0, .80, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+            ]
+            The object vector keys are defined in constants.OBJECT_VECTOR_KEYS:
+                [category instance confidence x y z width height depth
+                 black white red orange yellow green cyan blue purple pink]
     """
     num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw, boxes.shape[0], len(classes)])
 
-    if update_state.states is None:
-        # Initialize a matrix of state vectors for the past 20 frames
-        update_state.i = 0
-        update_state.window = 20
-        update_state.columns = pd.DataFrame(list(category_index.values())).set_index('id', drop=True)['name']
-        update_state.states = pd.DataFrame(pd.np.zeros((20, len(category_index)), dtype=int), columns=update_state.columns)
-        update_state.state0 = pd.Series(index=update_state.columns)
-
-    state = []  # if state is None else state
+    object_vectors = []
     for i in range(num_boxes):
         if scores is None or scores[i] > min_score_thresh:
             # box = tuple(boxes[i].tolist())
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
-            print(display_str)  # TODO(Alex) Convert to logging
-            state += [class_name]
-    state = collections.Counter(state)
-    update_state.states.iloc[i % len(update_state.states), :] = pd.Series(state)
-    state = sorted(list(state.items()))
-    i = (i + 1) % len(update_state.states)  # update_state.window  TODO(Hobs) Is `i` used after this?
-    return state
+            print(display_str)  # TODO: Convert to logging
+            object_vectors.append([class_name, 0, scores[i], 0, 0, 0, 0, 0, 0] +
+                                  list(estimate_color(image, box=boxes[i])))
+    return object_vectors
 
 
-update_state.states = None
-
-def update_state_dict(image, boxes, classes, scores, category_index, src_img=None, window=10, max_boxes_to_draw=None, min_score_thresh=.5):
-    """ Revise state based on latest frame of information (object boxes)
-
-    TODO(Hobson | Alex) Finish docstring (Need to know all the args and the return val)
-    Args:
-        boxes (list): 2D numpy array of shape (N, 4): (ymin, xmin, ymax, xmax), in normalized format between [0, 1].
-        classes,
-    Args (that should be class attributes):
-        category_index (dict of dicts): {1: {'id': 1, 'name': 'person'}, 2: {'id': 2, 'name': 'bicycle'},...}
-    Returns:
-
-        Example Output:
-        {
-            "cup":
-                 [
-                    { color: [<color_vec>], score: 0.95, ... },
-                    { color: [<color_vec>], score: 0.88, ... ),
-                ],
-            "person":
-                [
-                    { color: [<color_vec>], score: 0.99, ... },
-                    { color: [<color_vec>], score: 0.75, ... },
-                    { color: [<color_vec>], score: 0.85, ... }
-                ],
-            ...
-
-        }
-    """
-    num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw, boxes.shape[0], len(classes)])
-
-    state_obj = defaultdict(list)
-    if update_state_dict.i is None:
-       update_state_dict.i = 0
-
-    for i in range(num_boxes):
-        if scores is None or scores[i] > min_score_thresh:
-            class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
-            display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
-            print(display_str)  # TODO(Alex) Convert to logging
-
-            obj_data = {
-                'score': scores[i],
-                'color': color_labeler.estimate(image, box=boxes[i])
-            }
-
-            state_obj[class_name] += [obj_data]
-
-    update_state_dict.i += 1
-
-    return state_obj
-
-
-update_state_dict.i = None
-
-# for i in range(update_state.window):
-#     update_state.states.append([])
-
-
-def describe_state(state):
+def describe_scene(object_vectors):
     """ Convert a state vector dictionary of objects and their counts into a natural language string
 
-    >>> describe_state({'skis': [{'score': 0.99}, {'score': 0.88}]})
+    >>> describe_scene({'skis': [{'score': 0.99}, {'score': 0.88}]})
     '2 pairs of skis'
-    >>> statement = describe_state({'skis': [{'score': 0.88}], 'cup': [{'score': 0.87 }, {'score': 0.66}]} )
-    >>> '2 cups' in statement and 'and' in statement and '1 skis' in statement
-    True
+    >>> object_vectors = [
+    ...    # categ instnc x   y   z  wdth hght dpth blk wht red orng yel  grn  cyn  blu purp pink
+    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ... ]
+    >>> describe_scene(object_vectors)
     """
-    state_counts = _count_objects(state)
+    def count_objects(object_vectors):
+        return collections.Counter(list(zip(*object_vectors))[0]) if len(object_vectors) else {}
 
-    plural_description_list = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in state_counts.items()]
+    object_counts = count_objects(object_vectors)
+
+    plural_description_list = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in object_counts.items()]
 
     delim_description = compose_comma_series(plural_description_list)
 
@@ -203,23 +131,22 @@ def compose_comma_series(noun_list: typing.List[str]) -> str:
     return delim_description
 
 
-def _count_objects(state_dict):
-    new_dict = {k: len(v) for k, v in state_dict.items()}
-    return new_dict
-
-
-def say(s, rate=230):
+def say(s, rate=250):
     """ Convert text to speech (TTS) and play resulting audio to speakers
 
-    If "say" command is not available in os.system then print the text to stdout.
+    If "say" command is not available in os.system then print the text to stdout and return False.
 
     >>> result = say('hello')  # TODO(Ashwin | Alex | Hobbs) This test will fail on Jenkins
     >>> result == 'hello' or result == False
     True
     """
+    shell_cmd = 'say --rate={rate} "{s}"'.format(**dict(rate=rate, s=s))
     try:
-        os.system('say --rate={rate} "{s}"'.format(**dict(rate=rate, s=s)))
+        status = os.system(shell_cmd)
+        if status > 0:
+            print('os.system({shell_cmd}) returned nonzero status: {status}'.format(**locals()))
+            raise OSError
         return s
-    except:
+    except OSError:
         print(s)
     return False

@@ -94,5 +94,13 @@ ENV/
 # tensorflow model weights
 *.tar.gz
 
+*.dev.*
+*.master.*
+*.bak.*
+*.broke.*
+*.fixed.*
+*.works.*
+
 # Mac OSX
 .DS_Store
+
