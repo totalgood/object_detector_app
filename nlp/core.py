@@ -129,11 +129,24 @@ def aggregate_descriptions_by_features(feature_list, *,
         ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         ... ]
         >>> feature_list = list(map(object_features, obj_vectors))
-        >>> descs = aggregate_descriptions_by_features(feature_list, include_position=True)
+        >>> descs = aggregate_descriptions_by_features(feature_list)
         >>> '2 white cups to your right' in descs and 'a white ski to your right' in descs
         True
         >>> no_color = aggregate_descriptions_by_features(feature_list, include_color=False)
         >>> '2 cups to your right' in no_color and 'a ski to your right' in no_color
+        True
+        >>> obj_vectors_color = [
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .51, .01, .01, .01, .01, .01],
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
+        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        ... ]
+        >>> feature_list = list(map(object_features, obj_vectors))
+        >>> diff_colors = aggregate_descriptions_by_features(feature_list)
+        >>> diff_colors
+        >>> 'a red cup to your right' in diff_colors and 'a white cup to your right' in diff_colors
+        True
+        >>> diff_no_colors = aggregate_descriptions_by_features(feature_list, include_color=False)
+        >>> '2 cups to your right' in diff_no_colors
         True
     """
 
