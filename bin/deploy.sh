@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
-git clone origin master
+git pull origin master
 
-./update_env.sh
+/bin/bash ./bin/update_env.sh
+
+/bin/bash ./bin/run.sh &
