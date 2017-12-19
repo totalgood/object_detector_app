@@ -3,14 +3,36 @@
 A real-time object recognition application using [Google's TensorFlow Object Detection API](https://github.com/tensorflow/models/tree/master/research/object_detection) and [OpenCV](http://opencv.org/).
 
 ## Getting Started
-1. `conda env create -f environment.yml`
-2. `conda install pip`. 
-    *If you already have pip, you will need to `source deactivate` first and then run `conda install pip` to make sure there        are no errors which will occur in the OS
-3. To see where the source of your pyhton files that you are running are, use `which python`
-4. If it is not where you have installed the conda environment, you need to change the source for python
-    * `vim environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the name of the file.
+
+Install Anaconda according to the instructions [here](https://docs.anaconda.com/anaconda/install/).
+
+Make sure your python package installer, `pip`, is updated to use the Anaconda version:
+
+```bash
+$ conda install pip
+```
+
+Clone the repo to your local machine in whatever folder you use to hold source code, like ~/src/
+
+```bash
+$ mkdir ~/src
+$ cd ~/src
+$ git clone https://github.com/aira/object_detector_app
+$ cd object_detector_app
+```
+
+Create a new Anaconda environment on your machine to hold tensorflow, python 3.5, OpenCV, etc. This will take a while:
+
+`conda env create -f environment.yml`
+
+Check to make sure you're using the python that's in your conda environment: `which python` should have a path that indicates anaconda and the object-detection environment.
+
+If it is not where you have installed the conda environment, you need to change the source for python
+
+    * `head environment.yml` and look at the first line of the file which should say something like `name: object-detection`.         We are interested in the name of the file.
     * `source activate name` where name will be replaced with what was stated in your environment.yml file
     * `which python` and this time the place where you installed conda will show up
+
 5. `python object_detection_app.py`
     Optional arguments (default value):
     * Show all commands `--help`
