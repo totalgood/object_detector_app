@@ -134,12 +134,12 @@ def position(normalized_box):
 
     Args:
         normalized_box (tuple): (x, y, z, width, height, depth)
-            x (float): x-center of the bounding box
-            y (float): y-center of the bounding box
-            z (float): set to 0
-            width (float):this is defined as xmax-xmin.
-            height (float): this is defined as ymax-ymin.
-            depth (float): set to 0
+            x_normalized (float): x-center of the bounding box
+            y_normalized (float): y-center of the bounding box
+            z_normalized (float): set to 0
+            width_normalized (float):this is defined as xmax-xmin.
+            height_normalized (float): this is defined as ymax-ymin.
+            depth_normalized (float): set to 0
 
     Returns:
         string: 'left', 'right' or 'center'
@@ -155,10 +155,10 @@ def position(normalized_box):
     >>> position(normalized_box)
     'right'
     """
-    x, y, z, width, height, depth = normalized_box
-    if x > 0.6:
+    x_normalized, y_normalized, z_normalized, width_normalized, height_normalized, depth_normalized = normalized_box
+    if x_normalized > 0.6:
         return 'right'
-    elif x < 0.4:
+    elif x_normalized < 0.4:
         return 'left'
     return 'center'
 
