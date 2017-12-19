@@ -8,6 +8,7 @@ from object_detection.color_labeler import estimate as estimate_color
 
 from nlp.plurals import PLURALS
 from collections import defaultdict
+from nlp.transform import position, estimate_distance
 
 
 def pluralize(s):
@@ -25,7 +26,6 @@ def pluralize(s):
     Or, even better, just create pluralized versions of all the class names by hand!
     """
     word = str.lower(s)
-
     # `.get()` rather than `word in PLURALS` so that we only look up the word once
     pluralized_word = PLURALS.get(word, None)
     if pluralized_word is not None:
@@ -66,7 +66,6 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
                  black white red orange yellow green cyan blue purple pink]
     """
     num_boxes = min([boxes.shape[0] if max_boxes_to_draw is None else max_boxes_to_draw, boxes.shape[0], len(classes)])
-
     object_vectors = []
     for i in range(num_boxes):
         if scores is None or scores[i] > min_score_thresh:
@@ -74,7 +73,9 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
             print(display_str)  # TODO: Convert to logging
-            object_vectors.append([class_name, 0, scores[i], 0, 0, 0, 0, 0, 0] +
+            # change variable name later
+
+            object_vectors.append([class_name, 0, scores[i]] + list(estimate_distance(boxes[i])) +
                                   list(estimate_color(image, box=boxes[i])))
     return object_vectors
 
