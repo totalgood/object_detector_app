@@ -107,7 +107,7 @@ def describe_scene(object_vectors):
 
 
 def aggregate_descriptions_by_features(feature_list, *,
-                                       include_color: bool = True, include_position: bool = False) -> typing.List[str]:
+                                       include_color: bool = True, include_position: bool = True) -> typing.List[str]:
     """Produce a list of descriptions created through aggregations (counts) of objects in the scene.
 
     Can optionally aggregate by color and position.
@@ -129,17 +129,17 @@ def aggregate_descriptions_by_features(feature_list, *,
         ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         ... ]
         >>> feature_list = list(map(object_features, obj_vectors))
-        >>> descs = aggregate_descriptions_by_features(feature_list)
-        >>> '2 white cups' in descs and 'a white ski' in descs
+        >>> descs = aggregate_descriptions_by_features(feature_list, include_position=True)
+        >>> '2 white cups to your right' in descs and 'a white ski to your right' in descs
         True
         >>> no_color = aggregate_descriptions_by_features(feature_list, include_color=False)
-        >>> '2 cups' in no_color and 'a ski' in no_color
+        >>> '2 cups to your right' in no_color and 'a ski to your right' in no_color
         True
     """
 
     def include_features(f):
         """Filters feature tuple s.t. we include only the features we want to aggregate over. """
-        assert len(f) == 2, 'Make sure to include all the features in this function!!'
+        assert len(f) == 3, 'Make sure to include all the features in this function!!'
 
         fs = list()
         fs.append(f[0])
@@ -177,14 +177,14 @@ def describe_object(obj_vec) -> str:
 
         >>> obj_vec = ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         >>> describe_object(obj_vec)
-        'a white cup'
+        'a white cup to your right'
     """
     feature = object_features(obj_vec)
     return describe_object_from_feature(feature)
 
 
 def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
-                                 include_color=True, include_position=False) -> str:
+                                 include_color: bool = True, include_position: bool = True) -> str:
     """Creates formatted string description from object features and counts, including pluralization.
 
     Args:
@@ -202,12 +202,12 @@ def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
         - ValueError: Count cannot be zero, negative, or an non-integer less than 1.
 
     Examples:
-        >>> describe_object_from_feature(('cup', 'white'))
-        'a white cup'
-        >>> describe_object_from_feature(('cup', 'orange'))
-        'an orange cup'
-        >>> describe_object_from_feature(('cup', 'red'), 2)
-        '2 red cups'
+        >>> describe_object_from_feature(('cup', 'white', 'left'))
+        'a white cup to your left'
+        >>> describe_object_from_feature(('cup', 'orange', 'center'))
+        'an orange cup to your center'
+        >>> describe_object_from_feature(('cup', 'red', 'right'), 2)
+        '2 red cups to your right'
 
     """
     name, *rest = feature
@@ -246,14 +246,16 @@ def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
     if count > 1:
         output = multiple_desc_tmpl.format(amount=count,
                                            color=color,
-                                           name=pluralize(name))
+                                           name=pluralize(name),
+                                           position=position)
     elif count == 1:
         first_word = color if include_color else name
         article = 'an' if _starts_with_vowel(first_word) else 'a'
 
         output = single_desc_tmlp.format(article=article,
                                          color=color,
-                                         name=name)
+                                         name=name,
+                                         position=position)
     else:
         raise ValueError('There cannot be zero, negative, or fractional objects!')
 
@@ -298,13 +300,13 @@ def object_features(obj_vec):
     Examples:
         >>> obj_vec = ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
         >>> object_features(obj_vec)
-        ('cup', 'white')
+        ('cup', 'white', 'right')
     """
     if type(obj_vec) is list or type(obj_vec) is pd.Series:
         obj_vec = constants.ObjectSeries(obj_vec, index=constants.ObjectSeries.OBJECT_VECTOR_KEYS)
 
-    #       Name,                Color
-    return obj_vec['category'], obj_vec.obj_primary_color
+    #       Name,                Color,                    Position
+    return obj_vec['category'], obj_vec.obj_primary_color, position(tuple(obj_vec.obj_bbox))
 
 
 def compose_comma_series(noun_list: typing.List[str]) -> str:
