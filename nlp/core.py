@@ -1,14 +1,15 @@
 """ Natural Language Processing (Generation) utilities """
-import collections
 import os
 import typing
 
 import pandas as pd
+import object_detection.constants as constants
+
 # fix the antipattern of having a separate folder for every function/class
 from object_detection.color_labeler import estimate as estimate_color
-
 from nlp.plurals import PLURALS
-from collections import defaultdict
+
+from collections import Counter
 
 
 def pluralize(s):
@@ -89,19 +90,182 @@ def describe_scene(object_vectors):
     ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
     ... ]
     >>> desc = describe_scene(object_vectors)
-    >>> '1 cup' in desc and ' and ' in desc and '1 ski' in desc
+    >>> 'A cup' in desc and ' and ' in desc and 'A ski' in desc
     True
     """
-    def count_objects(object_vectors):
-        return collections.Counter(list(zip(*object_vectors))[0]) if len(object_vectors) else {}
+    feature_list = list(map(object_features, object_vectors))
 
-    object_counts = count_objects(object_vectors)
+    plural_descriptions = aggregate_descriptions_by_features(feature_list)
 
-    plural_description_list = ['{} {}'.format(i, pluralize(s) if i > 1 else s) for (s, i) in object_counts.items()]
-
-    delim_description = compose_comma_series(plural_description_list)
+    delim_description = compose_comma_series(plural_descriptions)
 
     return delim_description
+
+
+def aggregate_descriptions_by_features(feature_list, *,
+                                       include_color: bool = True, include_position: bool = False) -> typing.List[str]:
+    """Produce a list of descriptions created through aggregations (counts) of objects in the scene.
+
+    Can optionally aggregate by color and position.
+
+    Args:
+        feature_list:
+        include_color:
+        include_position:
+
+    Returns:
+        A list of strings with valid descriptions.
+
+    Examples:
+        >>> obj_vectors = [
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
+        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        ... ]
+        >>> feature_list = list(map(object_features, obj_vectors))
+        >>> aggregate_descriptions_by_features(feature_list)
+        ['A white cup', 'A white ski']
+        # TODO(Alex) doctest with `include_*` parameters
+    """
+    counts = Counter(feature_list)
+
+    pluralized_feature_groups = [describe_object_from_feature(feature, count,
+                                                               include_color=include_color,
+                                                               include_position=include_position)
+                                  for feature, count in counts.items()]
+    
+    return pluralized_feature_groups
+
+
+def describe_object(obj_vec) -> str:
+    """Creates formatted string description from object vector
+
+    Args:
+        obj_vec: a vector representing a single object.
+
+    Returns:
+        a description of the object.
+
+    Examples:
+
+        >>> obj_vec = ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        >>> describe_object(obj_vec)
+        'A white cup'
+    """
+    feature = object_features(obj_vec)
+    return describe_object_from_feature(feature)
+
+
+def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
+                                 include_color=True, include_position=False) -> str:
+    """Creates formatted string description from object features and counts, including pluralization.
+
+    Args:
+        feature: tuple of strings (<category name>, <color>)
+        count: a count of the occurrence of the feature, or None
+        include_color: Optionally include the color feature in description
+        include_position: Optionally include the position in object description
+
+    Returns:
+        A noun phrase describing the object.
+
+    Raises:
+        - AssertionError: This is for development time. Should the feature tuple get more than
+            the expected number of items in the tuple, an assertion error should be thrown
+        - ValueError: Count cannot be zero, negative, or an non-integer less than 1.
+
+    Examples:
+        >>> describe_object_from_feature(('cup', 'white'))
+        'A white cup'
+        >>> describe_object_from_feature(('cup', 'orange'))
+        'An orange cup'
+        >>> describe_object_from_feature(('cup', 'red'), 2)
+        '2 red cups'
+
+    """
+    name, color, *_ = feature
+
+    assert len(_) == 0, 'Need to update string formatting function with new features!'
+
+    if count is None:
+        count = 1
+
+    # Structure the string templates based on what features to include
+    base_tmpl = '{name}'
+    multiple_desc_tmpl = ''
+    single_desc_tmlp = ''
+
+    if include_color:
+        multiple_desc_tmpl = '{color} ' + base_tmpl
+        single_desc_tmlp = '{color} ' + base_tmpl
+
+    if include_position:
+        multiple_desc_tmpl += ' to your {position}'
+        single_desc_tmlp += ' to your {position}'
+
+    multiple_desc_tmpl = '{amount} ' + multiple_desc_tmpl
+    single_desc_tmlp = '{article} ' + single_desc_tmlp
+
+    if count > 1:
+        output = multiple_desc_tmpl.format(amount=count,
+                                           color=color,
+                                           name=pluralize(name))
+    elif count == 1:
+        article = 'An' if _starts_with_vowel(color) else 'A'
+
+        output = single_desc_tmlp.format(article=article,
+                                         color=color,
+                                         name=name)
+    else:
+        raise ValueError('There cannot be zero, negative, or fractional objects!')
+
+    return output
+
+
+def _starts_with_vowel(char) -> bool:
+    """Test to see if string starts with a vowel
+
+    Args:
+        char: character or string
+
+    Returns:
+        bool True if the character is a vowel, False otherwise
+
+    Examples:
+        >>> _starts_with_vowel('a')
+        True
+        >>> _starts_with_vowel('b')
+        False
+        >>> _starts_with_vowel('cat')
+        False
+        >>> _starts_with_vowel('apple')
+        True
+    """
+    if len(char) > 1:
+        char = char[0]
+
+    return char in 'aeiou'
+
+
+def object_features(obj_vec):
+    """Converts object vector to a tuple of labels (name, color, position, etc.)
+
+    Args:
+        obj_vec:
+
+    Returns:
+        Tuple of strings with the following format:
+        (<cateogry name>, <color>, ...)
+
+    Examples:
+        >>> obj_vec = ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        >>> object_features(obj_vec)
+        ('cup', 'white')
+    """
+    if type(obj_vec) is list or type(obj_vec) is pd.Series:
+        obj_vec = constants.ObjectSeries(obj_vec, index=constants.ObjectSeries.OBJECT_VECTOR_KEYS)
+
+    #       Name,                Color
+    return obj_vec['category'], obj_vec.obj_primary_color
 
 
 def compose_comma_series(noun_list: typing.List[str]) -> str:
@@ -119,7 +283,6 @@ def compose_comma_series(noun_list: typing.List[str]) -> str:
         >>> compose_comma_series(['1 pair of skis', '2 cups', '1 laptop'])
         '1 pair of skis, 2 cups and 1 laptop'
     """
-
     comma_list = ', '.join(noun_list[:-2])
     conjunction = ' and '.join(noun_list[-2:])
 
