@@ -85,13 +85,13 @@ def normalize_position(image, box):
 
     x_center = im_width / 2
     y_center = im_height / 2
-    x_scaled = (xmin - (x_center)) / x_center
-    y_scaled = (ymin - (y_center)) / y_center
-    width_scaled = (xmax - xmin) / x_center
-    height_scaled = (ymax - ymin) / y_center
-    z_scaled = 0.0
-    depth_scaled = 0.0
-    return x_scaled, y_scaled, z_scaled, width_scaled, height_scaled, depth_scaled
+    x = (xmin - (x_center)) / x_center
+    y = (ymin - (y_center)) / y_center
+    width = (xmax - xmin) / x_center
+    height = (ymax - ymin) / y_center
+    z = 0.0
+    depth = 0.0
+    return x, y, z, width, height, depth
 
 
 def estimate_distance(box):
@@ -134,12 +134,12 @@ def position(normalized_box):
 
     Args:
         normalized_box (tuple): (x, y, z, width, height, depth)
-            x_normalized (float): x-center of the bounding box
-            y_normalized (float): y-center of the bounding box
-            z_normalized (float): set to 0
-            width_normalized (float):this is defined as xmax-xmin.
-            height_normalized (float): this is defined as ymax-ymin.
-            depth_normalized (float): set to 0
+            x (float): x-center of the bounding box
+            y (float): y-center of the bounding box
+            z (float): set to 0
+            width (float):this is defined as xmax-xmin.
+            height (float): this is defined as ymax-ymin.
+            depth (float): set to 0
 
     Returns:
         string: 'left', 'right' or 'center'
@@ -155,10 +155,10 @@ def position(normalized_box):
     >>> position(normalized_box)
     'right'
     """
-    x_normalized, y_normalized, z_normalized, width_normalized, height_normalized, depth_normalized = normalized_box
-    if x_normalized > 0.6:
+    x, y, z, widht, height, depth = normalized_box
+    if x > 0.6:
         return 'right'
-    elif x_normalized < 0.4:
+    elif x < 0.4:
         return 'left'
     return 'center'
 
