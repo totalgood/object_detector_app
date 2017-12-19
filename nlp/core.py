@@ -62,8 +62,8 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
     Returns:
         list: list of object vectors, for example:
             [
-                ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
-                ['ski', 0, .80, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+                ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
+                ['ski', 0, .80, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
             ]
             The object vector keys are defined in constants.OBJECT_VECTOR_KEYS:
                 [category instance confidence x y z width height depth
@@ -88,13 +88,13 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
 def describe_scene(object_vectors):
     """ Convert a state vector dictionary of objects and their counts into a natural language string
 
-            categ instnc x   y   z  wdth hght dpth blk wht red orng yel  grn  cyn  blu purp pink
+            categ inst,  conf, x   y  z  wdth hght dpth blk wht red orng  yel  grn  cyn  blu purp pink
     >>> object_vectors = [
-    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
-    ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+    ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+    ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
     ... ]
     >>> desc = describe_scene(object_vectors)
-    >>> 'a white cup' in desc and ' and ' in desc and 'a white ski' in desc
+    >>> 'a black cup' in desc and ' and ' in desc and 'a black ski' in desc
     True
     """
     feature_list = list(map(object_features, object_vectors))
@@ -113,40 +113,50 @@ def aggregate_descriptions_by_features(feature_list, *,
     Can optionally aggregate by color and position.
 
     Args:
-        feature_list:
-        include_color:
-        include_position:
+        feature_list: list of tuples with description features [(<category name>, <color>, <position>), ...]
+        include_color: flag to aggregate by color
+        include_position: flag to aggregate by position
 
     Returns:
         A list of strings with valid descriptions.
 
     Examples:
-        # TODO(Alex) doctest with `include_*` parameters
-
+        TODO(Hobbs, Ashwin): Please review these test cases
         >>> obj_vectors = [
-        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
-        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
-        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
         ... ]
         >>> feature_list = list(map(object_features, obj_vectors))
         >>> descs = aggregate_descriptions_by_features(feature_list)
-        >>> '2 white cups to your right' in descs and 'a white ski to your right' in descs
+        >>> '2 black cups to your left' in descs and 'a black ski to your left' in descs
         True
         >>> no_color = aggregate_descriptions_by_features(feature_list, include_color=False)
-        >>> '2 cups to your right' in no_color and 'a ski to your right' in no_color
+        >>> '2 cups to your left' in no_color and 'a ski to your left' in no_color
         True
         >>> obj_vectors_color = [
-        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .51, .01, .01, .01, .01, .01],
-        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
-        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .51, .01, .01, .01, .01, .01, .01],
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
         ... ]
-        >>> feature_list = list(map(object_features, obj_vectors))
+        >>> feature_list = list(map(object_features, obj_vectors_color))
         >>> diff_colors = aggregate_descriptions_by_features(feature_list)
-        >>> diff_colors
-        >>> 'a red cup to your right' in diff_colors and 'a white cup to your right' in diff_colors
+        >>> 'an orange cup to your left' in diff_colors and 'a black cup to your left' in diff_colors
         True
         >>> diff_no_colors = aggregate_descriptions_by_features(feature_list, include_color=False)
-        >>> '2 cups to your right' in diff_no_colors
+        >>> '2 cups to your left' in diff_no_colors
+        True
+        >>> obj_vectors_pos = [
+        ...    ['cup', 0,   .95, 0.7, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01],
+        ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
+        ... ]
+        >>> feature_list = list(map(object_features, obj_vectors_pos))
+        >>> diff_pos = aggregate_descriptions_by_features(feature_list)
+        >>> 'a black cup to your left' in diff_pos and 'a black cup to your right' in diff_pos
+        True
+        >>> diff_no_pos = aggregate_descriptions_by_features(feature_list, include_position=False)
+        >>> '2 black cups' in diff_no_pos
         True
     """
 
@@ -188,9 +198,9 @@ def describe_object(obj_vec) -> str:
 
     Examples:
 
-        >>> obj_vec = ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        >>> obj_vec = ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
         >>> describe_object(obj_vec)
-        'a white cup to your right'
+        'a black cup to your left'
     """
     feature = object_features(obj_vec)
     return describe_object_from_feature(feature)
@@ -311,9 +321,9 @@ def object_features(obj_vec):
         (<cateogry name>, <color>, ...)
 
     Examples:
-        >>> obj_vec = ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01]
+        >>> obj_vec = ['cup', 0, .95, -.5, .1, 0, .1, .1, 0, .5, .3, .14, .01, .01, .01, .01, .01, .01, .01]
         >>> object_features(obj_vec)
-        ('cup', 'white', 'right')
+        ('cup', 'black', 'left')
     """
     if type(obj_vec) is list or type(obj_vec) is pd.Series:
         obj_vec = constants.ObjectSeries(obj_vec, index=constants.ObjectSeries.OBJECT_VECTOR_KEYS)
