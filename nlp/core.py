@@ -10,6 +10,7 @@ from nlp.plurals import PLURALS
 from collections import defaultdict
 from nlp.transform import position, estimate_distance
 
+
 def pluralize(s):
     """ Convert word to its plural form.
 
@@ -25,7 +26,6 @@ def pluralize(s):
     Or, even better, just create pluralized versions of all the class names by hand!
     """
     word = str.lower(s)
-
     # `.get()` rather than `word in PLURALS` so that we only look up the word once
     pluralized_word = PLURALS.get(word, None)
     if pluralized_word is not None:
@@ -73,7 +73,7 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
             print(display_str)  # TODO: Convert to logging
-            #change variable name later
+            # change variable name later
             estimate_distance = list(estimate_distance(boxes[i]))
             object_vectors.append([class_name, 0, scores[i]] + position(estimate_distance) +
                                   list(estimate_color(image, box=boxes[i])))
