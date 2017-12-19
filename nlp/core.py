@@ -8,6 +8,8 @@ import object_detection.constants as constants
 # fix the antipattern of having a separate folder for every function/class
 from object_detection.color_labeler import estimate as estimate_color
 from nlp.plurals import PLURALS
+from collections import defaultdict
+from nlp.transform import position, estimate_distance
 
 from collections import Counter
 
@@ -76,7 +78,9 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
             class_name = category_index.get(classes[i], {'name': 'unknown object'})['name']
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
             print(display_str)  # TODO: Convert to logging
-            object_vectors.append([class_name, 0, scores[i], 0, 0, 0, 0, 0, 0] +
+            #change variable name later
+            estimate_distance = list(estimate_distance(boxes[i]))
+            object_vectors.append([class_name, 0, scores[i]] + position(estimate_distance) +
                                   list(estimate_color(image, box=boxes[i])))
     return object_vectors
 
@@ -156,7 +160,7 @@ def aggregate_descriptions_by_features(feature_list, *,
                                                                include_color=include_color,
                                                                include_position=include_position)
                                   for feature, count in counts.items()]
-    
+
     return pluralized_feature_groups
 
 
