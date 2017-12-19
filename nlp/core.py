@@ -74,8 +74,8 @@ def update_state(image, boxes, classes, scores, category_index, window=10, max_b
             display_str = '{}: {} {}%'.format(classes[i], class_name, int(100 * scores[i]))
             print(display_str)  # TODO: Convert to logging
             # change variable name later
-            loc = list(estimate_distance(boxes[i]))
-            object_vectors.append([class_name, 0, scores[i]] + position(loc) +
+
+            object_vectors.append([class_name, 0, scores[i]] + list(estimate_distance(boxes[i])) +
                                   list(estimate_color(image, box=boxes[i])))
     return object_vectors
 
