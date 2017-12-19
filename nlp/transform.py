@@ -6,7 +6,8 @@ def normalize_position(image, box):
             rows (int): width of image
             columns (int): height of image
             channels (int): number of channels, if the image is in color
-        box (tuple): (xmin, xmax, ymin, ymax)
+        box (tuple): (ymin, xmin, ymax, xmax)
+            (xmin, xmax, ymin, ymax)
             xmin (int): left most edge of the bounding box
             xmax (int): right most edge of the bounding box
             ymin (int): lowest edge of the bounding box
@@ -44,27 +45,28 @@ def normalize_position(image, box):
         ________________
         (x,y)           (x+width,y)
 
+
     >>> from skimage.data import coffee
     >>> img = coffee()
-    >>> normalize_position(img,(100,100,50,50))
+    >>> normalize_position(img,(50,100,50,100))
     (-0.5, -0.8333333333333334, 0.0, 0.0, 0.0, 0.0)
-    >>> normalize_position(img,(10,90,10,90))
+    >>> normalize_position(img,(10,10,90,90))
     (-0.95, -0.9666666666666667, 0.0, 0.4, 0.26666666666666666, 0.0)
-    >>> normalize_position(img,(0,400,0,600))
+    >>> normalize_position(img,(0,0,600,400))
     (-1.0, -1.0, 0.0, 2.0, 2.0, 0.0)
-    >>> normalize_position(img,(100,50,0,600))
+    >>> normalize_position(img,(0,100,600,50))
     Traceback (most recent call last):
     ...
     AssertionError: xmin is greater than xmax
-    >>> normalize_position(img,(100,600,0,600))
+    >>> normalize_position(img,(0,100,600,600))
     Traceback (most recent call last):
     ...
     AssertionError: xmax is greater than image width
-    >>> normalize_position(img,(100,400,200,100))
+    >>> normalize_position(img,(200,100,100,400))
     Traceback (most recent call last):
     ...
     AssertionError: ymin is greater than ymax
-    >>> normalize_position(img,(-100,400,100,100))
+    >>> normalize_position(img,(100,-100,100,400))
     Traceback (most recent call last):
     ...
     AssertionError: xmin < 0
@@ -95,14 +97,27 @@ def normalize_position(image, box):
 def estimate_distance(box):
     """
     Args: box (tuple) : (ymin, xmin, ymax, xmax)
+        ymin (float): between value of 0 to 1 for the bounding box y value
+        xmin (float): between value of 0 to 1 for the bounding box x value
+        ymax (float): between value of 0 to 1 for the bounding box y value
+        xmax (float): between value of 0 to 1 for the bounding box x value
 
-    Returns : x (float): left most point and is scaled between 0 and 1.
-            y (float): bottom most point and is scaled between 0 and 1.
-            z (float): set to 0
-            width (float):this is defined as xmax-xmin.
-            height (float): this is defined as ymax-ymin.
-            depth (float): set to 0
+    Returns : tuple : (x, y, z, width, height, depth)
+        x (float): x-center of the bounding box
+        y (float): y-center of the bounding box
+        z (float): set to 0
+        width (float):this is defined as xmax-xmin.
+        height (float): this is defined as ymax-ymin.
+        depth (float): set to 0
 
+    >>> estimate_distance((0.0,0.0,1.0,1.0))
+    (0.5, 0.5, 0.0, 1.0, 1.0, 0.0)
+    >>> estimate_distance((0.0, 0.0, 0.5, 1.0))
+    (0.5, 0.25, 0.0, 1.0, 0.5, 0.0)
+    >>> estimate_distance((1.0, 1.0, 1.0, 1.0))
+    (1.0, 1.0, 0.0, 0.0, 0.0, 0.0)
+    >>> estimate_distance((0.0,0.0, 0.5, 0.75))
+    (0.375, 0.25, 0.0, 0.75, 0.5, 0.0)
     """
     ymin, xmin, ymax, xmax = box
     x = (xmin + xmax) / 2.0
@@ -119,38 +134,28 @@ def position(normalized_box):
 
     Args:
         normalized_box (tuple): (x, y, z, width, height, depth)
-            x (float): left most point and is scaled between -1 and 1. to scale, can do (xmin-image_width/2)/(image_width/2)
-            y (float): bottom most point and is scaled between -1 and 1. to scale, can do (ymin-image_height/2)/(image_height/2)
+            x (float): x-center of the bounding box
+            y (float): y-center of the bounding box
             z (float): set to 0
-            width (float):this is defined as xmax-xmin. to scale, compute (xmax-xmin)/(image_width/2)
-            height (float): this is defined as ymax-ymin. to scale, compute (ymax-ymin)/(image_height/2)
+            width (float):this is defined as xmax-xmin.
+            height (float): this is defined as ymax-ymin.
             depth (float): set to 0
 
     Returns:
         string: 'left', 'right' or 'center'
 
-    >>> from skimage.data import coffee
-    >>> img = coffee()
-    >>> normalized_box = normalize_position(img,(0,400,0,600))
+
+    >>> normalized_box = estimate_distance((0.0,0.0,1.0,1.0))
     >>> position(normalized_box)
     'center'
-    >>> normalized_box = normalize_position(img,(0,100,0,200))
+    >>> normalized_box = estimate_distance((0.0,0.0,1.0,0.4))
     >>> position(normalized_box)
     'left'
-    >>> normalized_box = normalize_position(img,(200,400,300,400))
+    >>> normalized_box = estimate_distance((0.0,0.5,1.0,1.0))
     >>> position(normalized_box)
-    'center'
-    >>> normalized_box = normalize_position(img,(-100,200,300,400))
-    Traceback (most recent call last):
-    ...
-    AssertionError: xmin < 0
-    >>> normalized_box = normalize_position(img,(0,400,0,800))
-    Traceback (most recent call last):
-    ...
-    AssertionError: ymax is greater than image height
-
+    'right'
     """
-    x, y, z, width, height, depth = normalized_box
+    x, y, z, widht, height, depth = normalized_box
     if x > 0.6:
         return 'right'
     elif x < 0.4:
