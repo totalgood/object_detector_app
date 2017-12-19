@@ -90,7 +90,7 @@ def describe_scene(object_vectors):
     ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
     ... ]
     >>> desc = describe_scene(object_vectors)
-    >>> 'A cup' in desc and ' and ' in desc and 'A ski' in desc
+    >>> 'A white cup' in desc and ' and ' in desc and 'A white ski' in desc
     True
     """
     feature_list = list(map(object_features, object_vectors))
@@ -117,14 +117,16 @@ def aggregate_descriptions_by_features(feature_list, *,
         A list of strings with valid descriptions.
 
     Examples:
+        # TODO(Alex) doctest with `include_*` parameters
+
         >>> obj_vectors = [
         ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
         ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         ... ]
         >>> feature_list = list(map(object_features, obj_vectors))
-        >>> aggregate_descriptions_by_features(feature_list)
-        ['A white cup', 'A white ski']
-        # TODO(Alex) doctest with `include_*` parameters
+        >>> descs = aggregate_descriptions_by_features(feature_list)
+        >>> 'A white cup' in descs and 'A white ski' in descs
+        True
     """
     counts = Counter(feature_list)
 
