@@ -90,7 +90,7 @@ def describe_scene(object_vectors):
     ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
     ... ]
     >>> desc = describe_scene(object_vectors)
-    >>> 'A white cup' in desc and ' and ' in desc and 'A white ski' in desc
+    >>> 'a white cup' in desc and ' and ' in desc and 'a white ski' in desc
     True
     """
     feature_list = list(map(object_features, object_vectors))
@@ -121,14 +121,36 @@ def aggregate_descriptions_by_features(feature_list, *,
 
         >>> obj_vectors = [
         ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
+        ...    ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01],
         ...    ['ski', 0,   .80, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         ... ]
         >>> feature_list = list(map(object_features, obj_vectors))
         >>> descs = aggregate_descriptions_by_features(feature_list)
-        >>> 'A white cup' in descs and 'A white ski' in descs
+        >>> '2 white cups' in descs and 'a white ski' in descs
+        True
+        >>> no_color = aggregate_descriptions_by_features(feature_list, include_color=False)
+        >>> '2 cups' in no_color and 'a ski' in no_color
         True
     """
-    counts = Counter(feature_list)
+
+    def include_features(f):
+        """Filters feature tuple s.t. we include only the features we want to aggregate over. """
+        assert len(f) == 2, 'Make sure to include all the features in this function!!'
+
+        fs = list()
+        fs.append(f[0])
+
+        if include_color:
+            fs.append(f[1])
+
+        if include_position:
+            fs.append(f[2])
+
+        return tuple(fs)
+
+    included = list(map(include_features, feature_list))
+
+    counts = Counter(included)
 
     pluralized_feature_groups = [describe_object_from_feature(feature, count,
                                                                include_color=include_color,
@@ -151,7 +173,7 @@ def describe_object(obj_vec) -> str:
 
         >>> obj_vec = ['cup', 0,   .95, -.5, .1, 0,  .1,  .1,  0,  .5, .3, .14, .01, .01, .01, .01, .01, .01]
         >>> describe_object(obj_vec)
-        'A white cup'
+        'a white cup'
     """
     feature = object_features(obj_vec)
     return describe_object_from_feature(feature)
@@ -177,28 +199,38 @@ def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
 
     Examples:
         >>> describe_object_from_feature(('cup', 'white'))
-        'A white cup'
+        'a white cup'
         >>> describe_object_from_feature(('cup', 'orange'))
-        'An orange cup'
+        'an orange cup'
         >>> describe_object_from_feature(('cup', 'red'), 2)
         '2 red cups'
 
     """
-    name, color, *_ = feature
+    name, *rest = feature
 
-    assert len(_) == 0, 'Need to update string formatting function with new features!'
+    if include_color:
+        color, *rest = rest
+    else:
+        color = None
+
+    if include_position:
+        position, *rest = rest
+    else:
+        position = None
+
+    assert len(rest) == 0, 'Need to update string formatting function with new features!'
 
     if count is None:
         count = 1
 
     # Structure the string templates based on what features to include
     base_tmpl = '{name}'
-    multiple_desc_tmpl = ''
-    single_desc_tmlp = ''
+    multiple_desc_tmpl = base_tmpl
+    single_desc_tmlp = base_tmpl
 
     if include_color:
-        multiple_desc_tmpl = '{color} ' + base_tmpl
-        single_desc_tmlp = '{color} ' + base_tmpl
+        multiple_desc_tmpl = '{color} ' + multiple_desc_tmpl
+        single_desc_tmlp = '{color} ' + single_desc_tmlp
 
     if include_position:
         multiple_desc_tmpl += ' to your {position}'
@@ -212,7 +244,8 @@ def describe_object_from_feature(feature, count: typing.Optional[int] = None, *,
                                            color=color,
                                            name=pluralize(name))
     elif count == 1:
-        article = 'An' if _starts_with_vowel(color) else 'A'
+        first_word = color if include_color else name
+        article = 'an' if _starts_with_vowel(first_word) else 'a'
 
         output = single_desc_tmlp.format(article=article,
                                          color=color,
