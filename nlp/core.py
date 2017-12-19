@@ -1,5 +1,6 @@
 """ Natural Language Processing (Generation) utilities """
 import os
+import typing
 
 import pandas as pd
 import object_detection.constants as constants
