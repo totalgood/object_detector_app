@@ -37,8 +37,8 @@ If it is not in a folder with your conda environment name (`object-detection` is
 
 6. Start the app!
 
-  6.1 `python object_detection_app.py --help` to see all the options 
-  6.2 `python object_detection_app.py` without any arguments to run it using your webcam without a guid and without verbalizing the responses
+    6.1 `python object_detection_app.py --help` to see all the options 
+    6.2 `python object_detection_app.py` without any arguments to run it using your webcam without a guid and without verbalizing the responses
 
 ## Development
 
@@ -144,14 +144,12 @@ The test harness gets the same message as the above section.
 
 ### Agent-Chloe Experiment Configuration Discussion
 
-- Should be configured on dashboard. 
-- Response to explorer should have a delay, whether they come from Chloe or the AI. The explorer should not be able to distinguish between human and machine. 
-- Want to design intentional fallback from the AI to the Human agent. Thus, we need two buttons: the random send (either AI or Human), and a **SEND!** that forcibly sends the human response over the AI. 
+* Should be configured on dashboard.  
+* Responses to the explorer should have a similar delay, whether they come from Chloe or the AI. The explorer should not be able to distinguish between human and machine.  
+* Want to design intentional fallback from the AI to the Human agent. Thus, we need two buttons:
 
-## Notes
-
-- ~~OpenCV 3.1 might crash on OSX after a while, so that's why I had to switch to version 3.0. See open issue and solution [here](https://github.com/opencv/opencv/issues/5874).~~
-- Moving the `.read()` part of the video stream in a multiple child processes did not work. However, it was possible to move it to a separate thread.
+1. the random send (either AI or Human)
+2. **SEND!** that forcibly sends the human response over the AI.  
 
 ## Copyright
 
