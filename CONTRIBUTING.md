@@ -15,7 +15,7 @@ Follow the [Hettinger interpretation of PEP8](https://www.youtube.com/watch?v=wf
 Here's my Sublime Anaconda plugin configuration.
 
 
-```json
+```javascript
 {
     // Maximum McCabe complexity (number of conditional branches within a function).
     "mccabe_threshold": 7,
