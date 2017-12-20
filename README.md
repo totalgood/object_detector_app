@@ -31,9 +31,11 @@ $ cd object_detector_app
 
 If it is not in a folder with your conda environment name (`object-detection` is the default), you need to activate your environment:
 
-    5.1 `head environment.yml` -- 1st line should say something like `name: object-detection`
+```markdown
+    5.1 `head environment.yml` -- 1st line should say something like `name: object-detection`  
     5.2 `source activate object-detection` -- replace `object-detection` with your environment name   
     5.3 `which python` -- make sure this is now correctly pointing to your conda environment path  
+```
 
 6. Start the app!
 
