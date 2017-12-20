@@ -39,8 +39,10 @@ If it is not in a folder with your conda environment name (`object-detection` is
 
 6. Start the app!
 
+```markdown
     6.1 `python object_detection_app.py --help` to see all the options   
-    6.2 `python object_detection_app.py` without any arguments to run it using your webcam without a guid and without verbalizing the responses . 
+    6.2 `python object_detection_app.py` to run it using your webcam but no GUI or verbalization
+```
 
 ## Development
 
