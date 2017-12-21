@@ -68,7 +68,7 @@ url_str = os.environ.get('AIRAMQTT_URL', 'preprod-mqtt.aira.io')
 port = int(os.environ.get('AIRAMQTT_PORT', '1883'))
 
 
-mqttc.connect(url_str, port, 60)
+mqttc.connect(url_str, port, 15)
 mqttc.subscribe(EXPLORER_SUB_TOPIC, 0)
 
 
