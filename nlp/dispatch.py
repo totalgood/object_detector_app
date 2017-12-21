@@ -14,6 +14,9 @@ import os
 import typing
 
 import paho.mqtt.client as mqtt
+import numpy as np
+from datetime import datetime
+
 USER_ID = 1234
 EXPLORER_SUB_TOPIC = 'dev/chloe/explorer/{}/statement'.format(USER_ID)
 AGENT_TOPIC = 'dev/chloe/agent/{}/response'.format(USER_ID)
@@ -103,7 +106,18 @@ class Dispatchable:
     root_topic = AGENT_TOPIC
 
     def send(self, payload: typing.Dict, *, subtopic: typing.List[str] = list()):
-        payload_json = json.dumps(payload)
+        random_number = int(np.random.random_integers(0, 1000))
+        timestamp = int((datetime.utcnow() - datetime(1970, 1, 1, 0, 0, 0, 0)).total_seconds())
+        code = "ch-vis-000"
+        message = "success"
+        #FIXME: Fix this with actual value
+        confidence = 90
+
+        # to be replaced with actual values
+        data = {"messageID": random_number, "statementID": random_number, "timestamp": timestamp,
+                "status": {"code": code, "message": message}, "action": "say", "args": [], "kwargs": {"confidence": confidence, "source": "chloe", "text": str(payload)}}
+
+        payload_json = json.dumps(data)
         if not subtopic:
             self.client.publish(self.root_topic, payload=payload_json)
         else:
@@ -128,6 +142,7 @@ dispatcher = {
 
 
 def _test_mqtt_loop():
+
     rc = 0
     while rc == 0:
         rc = mqttc.loop()
