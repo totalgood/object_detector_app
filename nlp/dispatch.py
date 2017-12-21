@@ -104,18 +104,35 @@ def interp_command(cmd_str: str, actions: typing.List[str]) -> str:
 class Dispatchable:
     client = mqttc
     root_topic = AGENT_TOPIC
+    #TODO: __init__(self)
+    message_id = 0
 
     def send(self, payload: typing.Dict, *, subtopic: typing.List[str] = list()):
         random_number = int(np.random.random_integers(0, 1000))
         timestamp = int((datetime.utcnow() - datetime(1970, 1, 1, 0, 0, 0, 0)).total_seconds())
         code = "ch-vis-000"
         message = "success"
-        #FIXME: Fix this with actual value
+        # FIXME: Fix this with actual value
         confidence = 90
+        message_id = Dispatchable.message_id + 1
+        Dispatchable.message_id += 1
 
         # to be replaced with actual values
-        data = {"messageID": random_number, "statementID": random_number, "timestamp": timestamp,
-                "status": {"code": code, "message": message}, "action": "say", "args": [], "kwargs": {"confidence": confidence, "source": "chloe", "text": str(payload)}}
+        data = {"messageID": message_id,
+                "statementID": random_number,
+                "timestamp": timestamp,
+                "status":
+                    {"code": code,
+                     "message": message
+                     },
+                    "action": "say",
+                    "args": [],
+                    "kwargs":
+                        {"confidence": confidence,
+                         "source": "chloe",
+                         "text": str(payload)
+                         }
+                }
 
         payload_json = json.dumps(data)
         if not subtopic:
