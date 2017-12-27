@@ -140,20 +140,25 @@ if __name__ == '__main__':
 
     rc = 0  # mqtt client status. Error if not zero
     while True:  # fps._numFrames < 120
-        frame = video_capture.read()
-        input_q.put(frame)
 
         t = time.time()
 
-        output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
-        if disp_graphics:
-            cv2.imshow('Video', output_rgb)
-        fps.update()
+        if video_capture.stream.isOpened():
+            frame = video_capture.read()
+            input_q.put(frame)
+
+            output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
+            if disp_graphics:
+                cv2.imshow('Video', output_rgb)
+            fps.update()
+        else:
+            video_capture.stream.open(source)
 
         print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
         if rc is 0:
             rc = mqttc.loop_start()
