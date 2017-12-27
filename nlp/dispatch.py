@@ -14,6 +14,9 @@ import os
 import typing
 
 import paho.mqtt.client as mqtt
+import numpy as np
+from datetime import datetime
+
 USER_ID = 1234
 EXPLORER_SUB_TOPIC = 'dev/chloe/explorer/{}/statement'.format(USER_ID)
 AGENT_TOPIC = 'dev/chloe/agent/{}/response'.format(USER_ID)
@@ -45,7 +48,7 @@ def on_message(client, obj, msg):
     except json.decoder.JSONDecodeError:
         return
 
-    cmd = payload.get('command', 'default').lower(),
+    cmd = payload.get('statement', 'default').lower(),
 
     action = interp_command(cmd, list(dispatcher.keys()))
 
@@ -62,7 +65,6 @@ mqttc.on_connect = on_connect
 mqttc.on_publish = on_publish
 mqttc.on_subscribe = on_subscribe
 # mqttc.on_log = on_log
-
 
 url_str = os.environ.get('AIRAMQTT_URL', 'preprod-mqtt.aira.io')
 port = int(os.environ.get('AIRAMQTT_PORT', '1883'))
@@ -101,9 +103,40 @@ def interp_command(cmd_str: str, actions: typing.List[str]) -> str:
 class Dispatchable:
     client = mqttc
     root_topic = AGENT_TOPIC
+    message_id = 0
 
     def send(self, payload: typing.Dict, *, subtopic: typing.List[str] = list()):
-        payload_json = json.dumps(payload)
+        random_number = int(np.random.random_integers(0, 1000))
+        timestamp = int((datetime.utcnow() - datetime(1970, 1, 1, 0, 0, 0, 0)).total_seconds() * 1000)
+        code = "ch-vis-000"
+        message = "success"
+        # FIXME: Fix this with actual value
+        # TODO: assert that there is a key in the payload dictionary called confidence
+        confidence = 90
+        message_id = Dispatchable.message_id + 1
+        Dispatchable.message_id += 1
+
+        data = {
+            "messageID": message_id,
+            # FIXME: update with actual id from Android App
+            "statementID": random_number,
+            "timestamp": timestamp,
+            "status":
+            {
+                "code": code,
+                "message": message
+            },
+            "action": "say",
+            "args": [],
+            "kwargs":
+            {
+                "confidence": confidence,
+                "source": "chloe",
+                "text": str(payload)
+            }
+        }
+
+        payload_json = json.dumps(data)
         if not subtopic:
             self.client.publish(self.root_topic, payload=payload_json)
         else:
