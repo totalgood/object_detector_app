@@ -145,9 +145,15 @@ if __name__ == '__main__':
         t = time.time()
         if video_capture.stream.isOpened():
             video_capture.start()
+
             print('before frame = video_capture.read()')
             frame = video_capture.read()
             print('after  frame = video_capture.read()')
+
+            if frame is None:
+                print('frame is None')
+                continue
+
             input_q.put(frame)
             print('after input_q put')
 
@@ -166,11 +172,10 @@ if __name__ == '__main__':
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-
         if rc is 0:
-            rc = mqttc.loop_start()
-        #else:
-        #    print('MQTT Connection error!')
+            rc = mqttc.loop()
+        else:
+            print('MQTT Connection error!')
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
