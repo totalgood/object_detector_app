@@ -37,7 +37,7 @@ Use [Google/Numpy/Napolean/Markdown](http://sphinxcontrib-napoleon.readthedocs.i
 
 
 ```python
-def add(value, num=0)
+def add(value, num=0):
     """ Add a float to an integer
 
     Args:
@@ -50,6 +50,7 @@ def add(value, num=0)
     >>> add(1., 2)
     3.0
     """
+    pass
 ```
 
 
