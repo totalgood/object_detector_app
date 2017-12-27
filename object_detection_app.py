@@ -132,26 +132,33 @@ if __name__ == '__main__':
 
     if source is None:
         source = args.video_source
-
+    print('before video capture')
     video_capture = WebcamVideoStream(src=source,
                                       width=args.width,
-                                      height=args.height).start()
+                                      height=args.height)
+    print('after video capture')
     fps = FPS().start()
 
     rc = 0  # mqtt client status. Error if not zero
     while True:  # fps._numFrames < 120
 
         t = time.time()
-
         if video_capture.stream.isOpened():
+            video_capture.start()
+            print('before frame = video_capture.read()')
             frame = video_capture.read()
+            print('after  frame = video_capture.read()')
             input_q.put(frame)
+            print('after input_q put')
 
             output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
             if disp_graphics:
                 cv2.imshow('Video', output_rgb)
+            print('after disp graphics ')
             fps.update()
+
         else:
+            print('video stream is not open')
             video_capture.stream.open(source)
 
         print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
