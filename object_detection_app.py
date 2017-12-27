@@ -169,6 +169,7 @@ if __name__ == '__main__':
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
     print('[INFO] approx. FPS: {:.2f}'.format(fps.fps()))
 
+    mqttc.loop_stop()
     pool.terminate()
     video_capture.stop()
     if disp_graphics:
