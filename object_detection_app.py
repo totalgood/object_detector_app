@@ -156,9 +156,9 @@ if __name__ == '__main__':
             break
 
         if rc is 0:
-            rc = mqttc.loop()
-        else:
-            print('MQTT Connection error!')
+            rc = mqttc.loop_start()
+        #else:
+        #    print('MQTT Connection error!')
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
