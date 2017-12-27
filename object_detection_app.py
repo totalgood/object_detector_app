@@ -132,28 +132,23 @@ if __name__ == '__main__':
 
     if source is None:
         source = args.video_source
-    print('before video capture')
+
     video_capture = WebcamVideoStream(src=source,
                                       width=args.width,
-                                      height=args.height)
-    print('after video capture')
+                                      height=args.height).start()
     fps = FPS().start()
 
     rc = 0  # mqtt client status. Error if not zero
     while True:  # fps._numFrames < 120
 
         t = time.time()
+
         if video_capture.stream.isOpened():
             video_capture.start()
 
             print('before frame = video_capture.read()')
             frame = video_capture.read()
             print('after  frame = video_capture.read()')
-
-            if frame is None:
-                print('frame is None')
-                continue
-
             input_q.put(frame)
             print('after input_q put')
 
@@ -171,6 +166,7 @@ if __name__ == '__main__':
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
+
 
         if rc is 0:
             rc = mqttc.loop()

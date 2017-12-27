@@ -52,13 +52,11 @@ class WebcamVideoStream:
 
         # initialize the variable used to indicate if the thread should
         # be stopped
-        self.stopped = True
+        self.stopped = False
 
     def start(self):
         # start the thread to read frames from the video stream
-        if self.stopped:
-            self.stopped = False
-            Thread(target=self.update, args=()).start()
+        Thread(target=self.update, args=()).start()
         return self
 
     def update(self):
