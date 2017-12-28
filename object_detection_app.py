@@ -145,6 +145,10 @@ if __name__ == '__main__':
 
         if video_capture.stream.isOpened():
             frame = video_capture.read()
+
+            if frame is None:
+                continue
+
             input_q.put(frame)
 
             output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
