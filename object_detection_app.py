@@ -144,22 +144,14 @@ if __name__ == '__main__':
         t = time.time()
 
         if video_capture.stream.isOpened():
-            video_capture.start()
-
-            print('before frame = video_capture.read()')
             frame = video_capture.read()
-            print('after  frame = video_capture.read()')
             input_q.put(frame)
-            print('after input_q put')
 
             output_rgb = cv2.cvtColor(output_q.get(), cv2.COLOR_RGB2BGR)
             if disp_graphics:
                 cv2.imshow('Video', output_rgb)
-            print('after disp graphics ')
             fps.update()
-
         else:
-            print('video stream is not open')
             video_capture.stream.open(source)
 
         print('[INFO] elapsed time: {:.2f}'.format(time.time() - t))
@@ -169,9 +161,9 @@ if __name__ == '__main__':
 
 
         if rc is 0:
-            rc = mqttc.loop()
-        else:
-            print('MQTT Connection error!')
+            rc = mqttc.loop_start()
+        #else:
+        #    print('MQTT Connection error!')
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
