@@ -159,11 +159,10 @@ if __name__ == '__main__':
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
 
-
         if rc is 0:
-            rc = mqttc.loop_start()
-        #else:
-        #    print('MQTT Connection error!')
+            rc = mqttc.loop()
+        else:
+            print('[ERROR] MQTT Connection error!')
 
     fps.stop()
     print('[INFO] elapsed time (total): {:.2f}'.format(fps.elapsed()))
